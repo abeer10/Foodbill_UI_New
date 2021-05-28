@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "428229086595",
+    "project_id": "food-bill",
+    "storage_bucket": "food-bill.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:428229086595:android:79cda05d774fbf333afab6",
+        "android_client_info": {
+          "package_name": "com.example.shop_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "428229086595-hf2b5jpt42ptvi6fav7fomtei8tamfm2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shop_app",
+            "certificate_hash": "6ce0cd369c9034692cfa645a3e613b0d061b49c2"
+          }
+        },
+        {
+          "client_id": "428229086595-0m56mg1d38ufgftmbimiqd20nreg8to7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZpWkT7B6Hdk7FRmwYsQj5dz9DBr9qfVk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "428229086595-0m56mg1d38ufgftmbimiqd20nreg8to7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
