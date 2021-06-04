@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -23,44 +24,22 @@ class _NewBillState extends State<NewBill> {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String uid;
   int total = 0;
+  var selectedCustomer;
   List qty =[];
   int orderNo;
-  List<Wash> items = [
-    Wash(
-        image: 'assets/images/biryani.jpeg',
-        name: 'Biryani',
-        price: 100,
-        qty: 0,
-        parentcatrgory: 'Wash & Iron '
-    ),
-    Wash(
-        image: 'assets/images/bbq.jpeg',
-        name: 'BBQ',
-        price: 150,
-        qty: 0,
-        parentcatrgory: 'Ironing '
-    ),
-    Wash(
-        image: 'assets/images/karahi.jpeg',
-        name: 'Karahi',
-        price: 800,
-        qty: 0,
-        parentcatrgory: 'Dry Cleaning '
-    ),
-  ];
+  bool carts = false;
 
-  Customers selectedCustomer;
-  List<Customers> customerList = [
-    Customers(mobile: "+9233312344546"),
-    Customers(mobile: "+9233312344549"),
 
-  ];
-List<CartItems> cart = [];
+
 
   getProducts() async {
     uid =  await firebaseAuth.currentUser.uid;
     QuerySnapshot querySnapshot = await  _firestore.collection("restaurants_products").doc(uid)
         .collection("products").get();
+    //qty.length = querySnapshot.docs.length;
+//    for(int i; i<querySnapshot.docs.length; i++){
+//      qty.add(0);
+//    }
     return querySnapshot.docs;
   }
 
@@ -101,38 +80,61 @@ List<CartItems> cart = [];
       body:SingleChildScrollView(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Container(
-                padding: const EdgeInsets.only(left: 10.0, right: 10.0, ),
-                decoration: BoxDecoration(
-                    border: Border.all(width: 1.0, color: Colors.grey)
-                ),
-                child: DropdownButtonHideUnderline(
-                  child: DropdownButton<Customers>(
-                    isExpanded: true,
-                    hint:  Text("Customer"),
-                    value: selectedCustomer,
-                    onChanged: (value) {
-                      setState(() {
-                        selectedCustomer = value;
-                      });
-
-                    },
-                    items: customerList.map((customers) {
-                      return  DropdownMenuItem<Customers>(
-                        value: customers,
-                        child: Text(customers.mobile,
-                          //selectedIndustry.industryName,
-                          style:  TextStyle(color: Colors.black),
+            StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance.collection("restaurants").where("type", isEqualTo: "c").snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData)
+                    return CircularProgressIndicator();
+                  else {
+                    List<DropdownMenuItem> department = [];
+                    for (int i = 0; i < snapshot.data.docs.length; i++) {
+                      DocumentSnapshot snap = snapshot.data.docs[i];
+                      department.add(
+                        DropdownMenuItem(
+                          child: Text(
+                            snap['phone'],
+                            style: TextStyle(color: Colors.black),
+                          ),
+                          value: "${snap.id}",
                         ),
-
                       );
-                    }).toList(),
-                  ),
-                ),
-              ),
+                    }
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: DropdownButton(
+                        style: TextStyle(color: Colors.black87),
+                        underline: Container(
+                          height: 2,
+
+                          color: Colors.green,
+                        ),
+                        icon: Icon(Icons.arrow_downward),
+                        items: department,
+                        onChanged: (orgs) async {
+                          final snackBar = SnackBar(
+                            content: Text(
+                              'Selected Customer is is a $orgs',
+                              style: TextStyle(color: Colors.black),
+                            ),
+                          );
+                          Scaffold.of(context).showSnackBar(snackBar);
+                          setState(() {
+                            selectedCustomer = orgs;
+                          });
+                        },
+                        value: selectedCustomer,
+                        isExpanded: true,
+                        hint: new Text(
+                          "Choose Customer",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    );
+                  }
+
+                }
             ),
+
 
             Container(
              child: FutureBuilder(
@@ -176,7 +178,21 @@ List<CartItems> cart = [];
                              children: [
                                Row(
                                  children: [
-                                   Image.asset(items[index].image ,width: 100,height: 100, fit: BoxFit.cover,),
+                                   snapshot.data[index].data()["pic"] == null || snapshot.data[index].data()["pic"] == "" ?
+                                   Image.asset("assets/images/biryani.jpeg", width: 100, height: 100, fit: BoxFit.fill,) :
+                                   CachedNetworkImage(
+                                     imageUrl: '${snapshot.data[index].data()["pic"]}',
+                                     imageBuilder: (context, imageProvider) => Container(
+                                       width: 100, height: 100,
+                                       decoration: BoxDecoration(
+                                         shape: BoxShape.rectangle,
+                                         image: DecorationImage(
+                                             image: imageProvider, fit: BoxFit.cover),
+                                       ),
+                                     ),
+                                     placeholder: (context, url) => CircularProgressIndicator(),
+                                     errorWidget: (context, url, error) => Icon(Icons.error),
+                                   ),
                                    Column(
                                      crossAxisAlignment: CrossAxisAlignment.start,
                                      children: [
@@ -210,14 +226,19 @@ List<CartItems> cart = [];
                                    IconButton(
                                        onPressed:(){
                                          setState(() {
-                                           items[index].qty++;
+                                           _firestore.collection("restaurants_products").doc(uid)
+                                               .collection("products").doc(snapshot.data[index].data()["itemNo"].toString()).update(
+                                             {
+                                               "qty" : ++snapshot.data[index].data()["qty"],
+                                             }
+                                           );
                                            total = total + snapshot.data[index].data()["price"];
 
                                          });
                                        },
                                        icon: Icon(Icons.add_circle,color: orangeColors,)
                                    ),
-                                   Text(  items[index].qty.toString(),style: TextStyle(
+                                   Text(  snapshot.data[index].data()["qty"].toString(),style: TextStyle(
                                      fontFamily: 'Montserrat Regular',
                                      color: Colors.black,
                                      fontSize: 16,
@@ -228,10 +249,16 @@ List<CartItems> cart = [];
 
                                    IconButton( onPressed: (){
                                      setState(() {
-                                       if( items[index].qty <=0) {
-                                         items[index].qty=0;
+                                       if( snapshot.data[index].data()["qty"] <=0) {
+                                         snapshot.data[index].data()["qty"]=0;
                                        }else {
-                                         items[index].qty--;
+                                         _firestore.collection("restaurants_products").doc(uid)
+                                             .collection("products").doc(snapshot.data[index].data()["itemNo"].toString()).update(
+                                             {
+                                               "qty" : --snapshot.data[index].data()["qty"],
+                                             }
+                                         );
+                                         //items[index].qty--;
                                          total = total - snapshot.data[index].data()["price"];
                                        }
                                      });
@@ -244,23 +271,129 @@ List<CartItems> cart = [];
                                InkWell(
                                    child: Padding(
                                      padding: const EdgeInsets.all(8.0),
-                                     child: Icon(Icons.shopping_cart),
+                                     child: Icon(Icons.shopping_cart, color: carts ? Colors.red : Colors.green,),
                                    ),
                                  onTap: (){
 
-                                   _firestore.collection("restaurants_orders").doc(uid).collection("orders").doc(orderNo.toString()).set(
-                                     {
-                                       "name": snapshot.data[index].data()["name"],
-                                       "price" : snapshot.data[index].data()["price"],
-                                       "qty" : items[index].qty,
-                                       "orderNo" : orderNo,
-                                       "rating" : 0,
-                                       "review" : "",
-                                       "customerId" : uid,
-                                       "total_price" : total,
-                                       "status" : "pending"
-                                     }
-                                   );
+                                     setState(() {
+                                       carts = !carts;
+                                     });
+
+                                   if(carts == true) {
+                                     _firestore.collection("restaurants_orders")
+                                         .doc(uid).collection("orders").doc(
+                                         orderNo.toString())
+                                         .collection("items").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString())
+                                         .set(
+                                         {
+                                           "name": snapshot.data[index]
+                                               .data()["name"],
+                                           "price": snapshot.data[index]
+                                               .data()["price"],
+                                           "qty": snapshot.data[index]
+                                               .data()["qty"],
+                                           "orderNo": orderNo,
+                                           "rating": 0,
+                                           "review": "",
+                                           "customerId": selectedCustomer,
+                                           "total_price": total,
+                                           "status": "pending"
+                                         }
+                                     );
+
+                                     _firestore.collection("restaurants_orders")
+                                         .doc(uid).collection("orders").doc(
+                                         orderNo.toString())
+                                         .set(
+                                         {
+                                           "orderNo": orderNo,
+                                           "rating": 0,
+                                           "review": "",
+                                           "customerId": selectedCustomer,
+                                           "total_price": total,
+                                           "status": "pending"
+                                         }
+                                     );
+
+                                     _firestore.collection("customer_orders")
+                                         .doc(selectedCustomer).collection(
+                                         "restaurants").doc(uid).collection(
+                                         "orders").doc(orderNo.toString())
+                                         .collection("items").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString())
+                                         .set(
+                                         {
+                                           "name": snapshot.data[index]
+                                               .data()["name"],
+                                           "price": snapshot.data[index]
+                                               .data()["price"],
+                                           "qty": snapshot.data[index]
+                                               .data()["qty"],
+                                           "orderNo": orderNo,
+                                           "rating": 0,
+                                           "review": "",
+                                           "customerId": selectedCustomer,
+                                           "total_price": total,
+                                           "status": "pending"
+                                         }
+                                     );
+
+                                     _firestore.collection("customer_orders")
+                                         .doc(selectedCustomer).collection(
+                                         "restaurants").doc(uid).collection(
+                                         "orders").doc(orderNo.toString())
+                                         .set(
+                                         {
+
+                                           "orderNo": orderNo,
+                                           "rating": 0,
+                                           "review": "",
+                                           "customerId": selectedCustomer,
+                                           "total_price": total,
+                                           "status": "pending"
+                                         }
+                                     );
+
+
+                                     _firestore.collection(
+                                         "restaurants_products").doc(uid)
+                                         .collection("products").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString()).update(
+                                         {
+                                           "qty": 0,
+                                         }
+                                     );
+                                   } else {
+                                     _firestore.collection("restaurants_orders")
+                                         .doc(uid).collection("orders").doc(
+                                         orderNo.toString())
+                                         .collection("items").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString()).delete();
+
+                                     _firestore.collection("customer_orders")
+                                         .doc(selectedCustomer).collection(
+                                         "restaurants").doc(uid).collection(
+                                         "orders").doc(orderNo.toString())
+                                         .collection("items").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString()).delete();
+
+                                     _firestore.collection(
+                                         "restaurants_products").doc(uid)
+                                         .collection("products").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString()).update(
+                                         {
+                                           "qty": 0,
+                                         }
+                                     );
+
+                                   }
                                  },
                                )
 

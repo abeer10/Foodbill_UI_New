@@ -53,7 +53,7 @@ class _BodyState extends State<Body> {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (BuildContext context) {
-                                    return OrderDetail(orderNo: snapshot.data[index].data()["orderNo"].toString(),);
+                                    return OrderDetail(orderNo: snapshot.data[index].data()["orderNo"].toString(), data:  snapshot.data[index].data(),);
                                   },
                                 ),
                               );

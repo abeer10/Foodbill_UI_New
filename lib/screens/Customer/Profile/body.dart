@@ -2,8 +2,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
 import 'package:shop_app/components/default_button.dart';
 import 'package:shop_app/components/form_error.dart';
+import 'package:shop_app/screens/Customer/Home/trending.dart';
 import 'package:shop_app/screens/Customer/Profile/profile.dart';
 import 'package:shop_app/screens/Restaurant/Profile/Restaurant_Profile_Screen.dart';
 import 'package:shop_app/screens/old_home/components/discount_banner.dart';
@@ -87,7 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           title: Text("Profile"),
           actions: [
             FlatButton.icon(
-                onPressed: () {
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
                   Navigator.of(context).pushReplacement(
                     MaterialPageRoute(
                       builder: (BuildContext context) {
@@ -154,12 +158,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 text: "Save",
                 press: () {
                   if (_formKey.currentState.validate()) {
+                    print("ab");
+                   Get.snackbar("Profile", "Data Saved", duration: Duration(seconds: 2), backgroundColor: Colors.red);
                     _firestore.collection("restaurants").doc(userId).update({
                       "name" : NameCtrl.text,
                       "phone" : phonrNumberCtrl.text,
 
                     }).then((value){
-                      print("successfully entered");
+
+//                      Navigator.pushReplacement(context,  MaterialPageRoute(
+//                          builder: (context) => Trending() ));
                     });
                     //  Navigator.pushNamed(context, OtpScreen.routeName);
                   }

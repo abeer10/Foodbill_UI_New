@@ -1,6 +1,11 @@
+import 'dart:math';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shop_app/components/default_button.dart';
 import 'package:shop_app/components/coustom_bottom_nav_bar.dart';
 import 'package:shop_app/enums.dart';
@@ -8,6 +13,7 @@ import 'package:shop_app/components/custom_surfix_icon.dart';
 import 'package:shop_app/components/form_error.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:shop_app/screens/Customer/Home/trending.dart';
+import 'package:shop_app/screens/Restaurant/Invoice/Bill_Screen.dart';
 import 'package:shop_app/screens/otp/otp_screen.dart';
 
 import '../../../../constants.dart';
@@ -25,6 +31,7 @@ class _Profile_FormState extends State<Profile_Form> {
   String restaurantName;
   String restaurantAddress;
   String restaurantAbout;
+  String imagePath;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   TextEditingController restaurantNameCtrl = TextEditingController();
@@ -61,6 +68,45 @@ class _Profile_FormState extends State<Profile_Form> {
     return documentSnapshot.data();
   }
 
+  _imgFromGallery() async {
+    var image = await  ImagePicker.pickImage(
+        source: ImageSource.gallery, imageQuality: 50
+    );
+    _uploadImageToFirebase(image);
+
+//    setState(() {
+//      _image = image;
+//    });
+  }
+
+
+
+  Future<void> _uploadImageToFirebase(var image) async {
+    try {
+      // Make random image name.
+      int randomNumber = Random().nextInt(100000);
+      String imageLocation = 'images/image${randomNumber}.jpg';
+
+      // Upload image to firebase.
+      final Reference storageReference = FirebaseStorage.instance.ref().child(imageLocation);
+      final UploadTask uploadTask = storageReference.putFile(image);
+      await uploadTask;
+      final TaskSnapshot downloadUrl = (await uploadTask);
+      imagePath = await downloadUrl.ref.getDownloadURL();
+      print(imagePath);
+      // await post();
+      setState(() {
+        imagePath = imagePath;
+      });
+//      setState(() {
+//        _saving = false;
+//      });
+    }catch(e){
+      print(e.message);
+    }
+  }
+
+
 @override
   void initState() {
     userId = firebaseAuth.currentUser.uid;
@@ -95,24 +141,45 @@ class _Profile_FormState extends State<Profile_Form> {
                   ],
                   shape: BoxShape.rectangle,
                 ),
+                child:  imagePath == null || imagePath == "" ?
+                Image.asset("assets/images/biryani.jpeg", fit: BoxFit.fill,) :
+                CachedNetworkImage(
+                  imageUrl: '$imagePath',
+                  imageBuilder: (context, imageProvider) => Container(
+                    width: 500,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      image: DecorationImage(
+                          image: imageProvider, fit: BoxFit.cover),
+                    ),
+                  ),
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                ),
               ),
               Positioned(
                   bottom: 10,
                   right: 10,
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        width: 4,
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                  child: InkWell(
+                    onTap: (){
+                      _imgFromGallery();
+                    },
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          width: 4,
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                        ),
+                        color: Colors.green,
                       ),
-                      color: Colors.green,
-                    ),
-                    child: Icon(
-                      Icons.edit,
-                      color: Colors.white,
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                      ),
                     ),
                   )),
             ],
@@ -143,12 +210,13 @@ class _Profile_FormState extends State<Profile_Form> {
                   "phone" : phonrNumberCtrl.text,
                   "address" : restaurantAddressCtrl.text,
                   "about" : restaurantAboutCtrl.text,
-                  "pic" : ""
+                  "pic" : imagePath
 
                 }).then((value){
                   print("successfully entered");
                 });
-             //   Navigator.pushNamed(context, Trending.routeName);
+                Navigator.pushReplacement(context,  MaterialPageRoute(
+                        builder: (context) => Bill_Screen() ));
               }
             },
           ),

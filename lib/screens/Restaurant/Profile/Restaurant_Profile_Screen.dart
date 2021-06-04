@@ -44,7 +44,16 @@ class RestaurantProfile extends StatelessWidget {
                       builder: (context) => SignInScreen(),
                     ));
                   },
-                  child: Icon(Icons.logout)),
+                  child: InkWell(child: Icon(Icons.logout), onTap: () async{
+                   await FirebaseAuth.instance.signOut();
+                   Navigator.of(context).pushReplacement(
+                     MaterialPageRoute(
+                       builder: (BuildContext context) {
+                         return SignInScreen();
+                       },
+                     ),
+                   );
+                  },)),
               SizedBox(width: 10,),
         ],
         title: Text("Profile"),

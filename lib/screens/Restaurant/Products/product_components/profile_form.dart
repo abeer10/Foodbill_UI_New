@@ -1,8 +1,12 @@
+
 import 'dart:math';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shop_app/components/default_button.dart';
 import 'package:shop_app/components/coustom_bottom_nav_bar.dart';
 import 'package:shop_app/enums.dart';
@@ -30,6 +34,7 @@ class _AddProduct_FormState extends State<AddProduct> {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   String userId;
+  String imagePath;
   final List<String> errors = [];
 
   void addError({String error}) {
@@ -63,6 +68,44 @@ class _AddProduct_FormState extends State<AddProduct> {
   }
 
 
+  _imgFromGallery() async {
+    var image = await  ImagePicker.pickImage(
+        source: ImageSource.gallery, imageQuality: 50
+    );
+    _uploadImageToFirebase(image);
+
+//    setState(() {
+//      _image = image;
+//    });
+  }
+
+
+
+  Future<void> _uploadImageToFirebase(var image) async {
+    try {
+      // Make random image name.
+      int randomNumber = Random().nextInt(100000);
+      String imageLocation = 'images/image${randomNumber}.jpg';
+
+      // Upload image to firebase.
+      final Reference storageReference = FirebaseStorage.instance.ref().child(imageLocation);
+      final UploadTask uploadTask = storageReference.putFile(image);
+      await uploadTask;
+      final TaskSnapshot downloadUrl = (await uploadTask);
+      imagePath = await downloadUrl.ref.getDownloadURL();
+      print(imagePath);
+      // await post();
+      setState(() {
+        imagePath = imagePath;
+      });
+//      setState(() {
+//        _saving = false;
+//      });
+    }catch(e){
+      print(e.message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -87,25 +130,45 @@ class _AddProduct_FormState extends State<AddProduct> {
                   ],
                   shape: BoxShape.rectangle,
                 ),
-                child: Image.asset("assets/images/biryani.jpeg", fit: BoxFit.fill,),
+                child: imagePath == null || imagePath == "" ?
+                Image.asset("assets/images/biryani.jpeg", fit: BoxFit.fill,) :
+                CachedNetworkImage(
+                  imageUrl: '$imagePath',
+                  imageBuilder: (context, imageProvider) => Container(
+                    width: 500,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      image: DecorationImage(
+                          image: imageProvider, fit: BoxFit.cover),
+                    ),
+                  ),
+                  placeholder: (context, url) => CircularProgressIndicator(),
+                  errorWidget: (context, url, error) => Icon(Icons.error),
+                ),
               ),
               Positioned(
                   bottom: 10,
                   right: 10,
-                  child: Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        width: 4,
-                        color: Theme.of(context).scaffoldBackgroundColor,
+                  child: InkWell(
+                    onTap: (){
+                      _imgFromGallery();
+                    },
+                    child: Container(
+                      height: 40,
+                      width: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          width: 4,
+                          color: Theme.of(context).scaffoldBackgroundColor,
+                        ),
+                        color: Colors.green,
                       ),
-                      color: Colors.green,
-                    ),
-                    child: Icon(
-                      Icons.edit,
-                      color: Colors.white,
+                      child: Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                      ),
                     ),
                   )),
             ],
@@ -136,7 +199,7 @@ class _AddProduct_FormState extends State<AddProduct> {
                 await _firestore.collection("restaurants_products").doc(userId).collection("products").doc(widget.data["itemNo"].toString()).update({
                   "name" : productNameCtrl.text,
                   "price" : int.parse(productPriceCtrl.text),
-                  "pic" : "",
+                  "pic" : imagePath,
                   "itemNo" : widget.data["itemNo"],
                   "qty" : 0,
 

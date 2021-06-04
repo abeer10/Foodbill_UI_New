@@ -10,7 +10,8 @@ import '../../../constants.dart';
 
 class OrderDetails extends StatefulWidget {
   String orderNo;
-  OrderDetails({this.orderNo});
+  String uid;
+  OrderDetails({this.orderNo, this.uid});
   @override
   _OrderDetailsState createState() => _OrderDetailsState();
 }
@@ -19,7 +20,7 @@ class _OrderDetailsState extends State<OrderDetails> {
   Color orangeColors = kPrimaryColor;
   FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  String uid;
+  String uid, name="", price="", status="", review="";
   int total = 0;
   int qty;
   double rate = 0.0;
@@ -28,13 +29,19 @@ class _OrderDetailsState extends State<OrderDetails> {
 
   getOrders() async {
     uid =  await firebaseAuth.currentUser.uid;
-    documentSnapshot = await  _firestore.collection("restaurants_orders").doc(uid)
+    print(widget.orderNo);
+    print(uid);
+    documentSnapshot = await  _firestore.collection("restaurants_orders").doc(widget.uid)
         .collection("orders").doc(widget.orderNo).get();
+    print(documentSnapshot.data());
     setState(() {
+      name = documentSnapshot.data()["name"];
+      price = documentSnapshot.data()["price"].toString();
       total = documentSnapshot.data()["total_price"];
       qty = documentSnapshot.data()["qty"];
       rate =  documentSnapshot.data()["rating"].toDouble();
-      print(rate);
+      status = documentSnapshot.data()["status"];
+      review = documentSnapshot.data()["review"];
     });
     return documentSnapshot;
   }
@@ -90,7 +97,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                         children: [
                           Padding(
                             padding: const EdgeInsets.only(top:8.0, left: 8.0),
-                            child: Text(documentSnapshot.data()["name"],style: TextStyle(
+                            child: Text(name ,style: TextStyle(
                               fontFamily: 'Montserrat Regular',
                               color: Colors.black,
                               fontSize: 16,
@@ -100,7 +107,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                           ),
                           Padding(
                             padding: const EdgeInsets.only(right: 30.0,top: 2, left: 8.0),
-                            child: Text( "Rs"" " + documentSnapshot.data()["price"].toString() ,style: TextStyle(
+                            child: Text( "Rs"" " + price ,style: TextStyle(
                               fontFamily: 'Montserrat Regular',
                               color: Colors.black,
                               fontSize: 16,
@@ -239,8 +246,8 @@ class _OrderDetailsState extends State<OrderDetails> {
                   ),
                 ),
 
-                documentSnapshot.data()["status"] == "pending" ||
-                    documentSnapshot.data()["status"] == "modification" ? Container() :
+                status == "pending" ||
+                    status == "modification" ? Container() :
                 Container(
                   width: double.infinity,
                   height:MediaQuery.of(context).size.height*0.30 ,
@@ -263,7 +270,7 @@ class _OrderDetailsState extends State<OrderDetails> {
 
                   ),
                   child:
-                      documentSnapshot.data()["review"] != "" ?
+                      review != "" ?
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -392,13 +399,13 @@ class _OrderDetailsState extends State<OrderDetails> {
               ],
             ),
             SizedBox(height: 200,),
-            documentSnapshot.data()["status"] == "accept" ? Container(
+            status == "accept" ? Container(
               width: double.infinity,
               height: 50,
               margin: EdgeInsets.only(left: 20,right: 20, bottom: 10),
 
               child: RaisedButton(onPressed: (){
-                _firestore.collection("restaurants_orders").doc(uid).collection("orders").doc(widget.orderNo.toString()).update(
+                _firestore.collection("restaurants_orders").doc(widget.uid).collection("orders").doc(widget.orderNo.toString()).update(
                     {
                       "rating" : rate,
                       "review" : reviewCtrl.text
@@ -425,9 +432,9 @@ class _OrderDetailsState extends State<OrderDetails> {
               margin: EdgeInsets.only(left: 20,right: 20, bottom: 10),
 
               child: RaisedButton(onPressed: (){
-                _firestore.collection("restaurants_orders").doc(uid).collection("orders").doc(widget.orderNo.toString()).update(
+                _firestore.collection("restaurants_orders").doc(widget.uid).collection("orders").doc(widget.orderNo.toString()).update(
                           {
-                            "status" : "modify"
+                            "status" : "modification"
                           }
                       );
                 setState(() {
@@ -446,13 +453,13 @@ class _OrderDetailsState extends State<OrderDetails> {
               ),
             ),
             SizedBox(height: 20,),
-            documentSnapshot.data()["status"] != "accept" ?Container(
+            status != "accept" ?Container(
               width: double.infinity,
               height: 50,
               margin: EdgeInsets.only(left: 20,right: 20, bottom: 10),
 
               child: RaisedButton(onPressed: (){
-                _firestore.collection("restaurants_orders").doc(uid).collection("orders").doc(widget.orderNo.toString()).update(
+                _firestore.collection("restaurants_orders").doc(widget.uid).collection("orders").doc(widget.orderNo.toString()).update(
                     {
                       "status" : "accept"
                     }

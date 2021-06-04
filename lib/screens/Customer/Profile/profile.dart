@@ -1,9 +1,12 @@
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:shop_app/components/default_button.dart';
 import 'package:shop_app/components/form_error.dart';
+import 'package:shop_app/screens/Customer/Home/trending.dart';
 import 'package:shop_app/screens/otp/otp_screen.dart';
 
 import '../../../constants.dart';
@@ -48,14 +51,9 @@ class _Profile_FormState extends State<Profile_Form> {
           title: Text("Profile"),
           actions: [
             FlatButton.icon(
-                onPressed: () {
-//                  Navigator.of(context).push(
-//                    MaterialPageRoute(
-//                      builder: (BuildContext context) {
-//                        return ProductDetails();
-//                      },
-//                    ),
-//                  );
+                onPressed: () async {
+                 await FirebaseAuth.instance.signOut();
+                 Navigator.pop(context);
                 },
                 icon: Icon(Icons.logout),
                 label: Text('Logout')),
@@ -115,7 +113,9 @@ class _Profile_FormState extends State<Profile_Form> {
                 text: "Save",
                 press: () {
                   if (_formKey.currentState.validate()) {
-                  //  Navigator.pushNamed(context, OtpScreen.routeName);
+                    Get.snackbar("logout", "Data Saved", duration: Duration(seconds: 2));
+//                    Navigator.pushReplacement(context,  MaterialPageRoute(
+//                        builder: (context) => Trending() ));
                   }
                 },
               ),

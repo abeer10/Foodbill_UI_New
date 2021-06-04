@@ -25,14 +25,19 @@ class _OrdersState extends State<Orders>{
 
   String uid;
 
-  int total = 0;
+  int total=0;
 
   getOrders() async {
     uid =  await firebaseAuth.currentUser.uid;
-    QuerySnapshot querySnapshot = await  _firestore.collection("restaurants_orders").doc(widget.data["uid"])
-        .collection("orders").get();
+    QuerySnapshot querySnapshot = await  _firestore.collection("customer_orders").doc(uid)
+        .collection("restaurants").doc(widget.data["uid"]).collection("orders").get();
+
     return querySnapshot.docs;
   }
+
+
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -61,13 +66,14 @@ class _OrdersState extends State<Orders>{
                             itemCount: snapshot.data.length,
                             itemBuilder: (context, index) {
                               total = total  + snapshot.data[index].data()["total_price"];
+                              //totalCal(snapshot.data[index].data()["total_price"]);
                               print(total);
                               return InkWell(
                                 onTap: (){
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (BuildContext context) {
-                                      return OrderDetails(orderNo: snapshot.data[index].data()["orderNo"].toString(),);
+                                      return OrderDetails(orderNo: snapshot.data[index].data()["orderNo"].toString(), uid: widget.data["uid"],);
                                     },
                                   ),
                                 );
@@ -101,7 +107,7 @@ class _OrdersState extends State<Orders>{
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text("Order# ${snapshot.data[index].data()["orderNo"].toString()}" ,  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                                          Text("Restaurant: +92123456789"),
+                                          Text("Restaurant: ${snapshot.data[index].data()["name"]}"),
                                           Text("Price: Rs ${snapshot.data[index].data()["total_price"].toString()}"),
                                           Text("Status:  ${snapshot.data[index].data()["status"]}"),
                                           snapshot.data[index].data()["review"] == null ||
@@ -126,6 +132,7 @@ class _OrdersState extends State<Orders>{
 
 
                 SizedBox(height: 100,),
+                Text("$total"),
                 Container(
                   width: double.infinity,
                   height: 60,
@@ -152,6 +159,7 @@ class _OrdersState extends State<Orders>{
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+
                         Text("Total Spend:  Rs $total" ,  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
 
                       ],

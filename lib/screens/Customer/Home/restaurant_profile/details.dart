@@ -18,7 +18,7 @@ class _ProductDetailsState extends State<ProductDetails> {
 
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   QuerySnapshot querySnapshot;
-  int rev;
+  int rev=0;
   getOrders() async {
     querySnapshot = await  _firestore.collection("restaurants_orders").doc(widget.data["uid"])
         .collection("orders").where("review", isNotEqualTo: "").get();
@@ -30,7 +30,7 @@ class _ProductDetailsState extends State<ProductDetails> {
 
   @override
   Widget build(BuildContext context) {
-    double rating = widget.data == null ? 0.0 : double.parse(widget.data['rating']);
+    double rating = widget.data == null ? 0.0 : widget.data['rating'].toDouble();
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -141,7 +141,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                     );
                   } else {
                     return snapshot.data.length == 0 ?  Container(
-                      child: Center(child: Text("No Orders", style: TextStyle(color: Colors.black, fontSize: 18.0),)),
+                      child: Center(child: Text("No Reviews", style: TextStyle(color: Colors.black, fontSize: 18.0),)),
                     ) : ListView.builder(
                       shrinkWrap: true,
                       primary: false,

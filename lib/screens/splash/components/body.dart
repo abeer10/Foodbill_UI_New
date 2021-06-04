@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shop_app/constants.dart';
+import 'package:shop_app/screens/Customer/Home/trending.dart';
+import 'package:shop_app/screens/Restaurant/Profile/Restaurant_Profile_Screen.dart';
 import 'package:shop_app/screens/sign_in/sign_in_screen.dart';
 import 'package:shop_app/size_config.dart';
 
@@ -8,6 +10,8 @@ import '../components/splash_content.dart';
 import '../../../components/default_button.dart';
 
 class Body extends StatefulWidget {
+  String loginUser;
+  Body({this.loginUser});
   @override
   _BodyState createState() => _BodyState();
 }
@@ -29,6 +33,8 @@ class _BodyState extends State<Body> {
       "image": "assets/images/splash_3.png"
     },
   ];
+
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -70,7 +76,15 @@ class _BodyState extends State<Body> {
                     DefaultButton(
                       text: "Continue",
                       press: () {
-                        Navigator.pushReplacementNamed(context, SignInScreen.routeName, arguments: {"type" : "user"});
+                        if(widget.loginUser == "r"){
+                          Navigator.pushReplacement(context,  MaterialPageRoute(
+                            builder: (context) => RestaurantProfile(),
+                          ));
+                        } else if(widget.loginUser == "c") {
+                          Navigator.pushReplacement(context,  MaterialPageRoute(
+                              builder: (context) => Trending() ));
+                        } else
+                        Navigator.pushReplacementNamed(context, SignInScreen.routeName,);
                       },
                     ),
 //                    Spacer(),

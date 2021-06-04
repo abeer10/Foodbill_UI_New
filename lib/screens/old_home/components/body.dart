@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shop_app/screens/Customer/History/restaurants_list.dart';
 import 'package:shop_app/screens/Customer/Home/trending_item.dart';
@@ -18,10 +19,12 @@ class Body extends StatefulWidget {
 
 class _BodyState extends State<Body> {
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-
+  String uid;
   getRestaurants() async {
-    QuerySnapshot querySnapshot = await  firebaseFirestore.collection("restaurants").
-    where("type", isEqualTo : "r").get();
+    uid = FirebaseAuth.instance.currentUser.uid;
+    print(uid);
+    QuerySnapshot querySnapshot = await  firebaseFirestore.collection("customer_orders").doc(uid)
+        .collection("restaurants").get();
     return querySnapshot.docs;
   }
 
@@ -40,7 +43,7 @@ class _BodyState extends State<Body> {
               );
             } else {
               return snapshot.data.length == 0 ?  Container(
-                child: Center(child: Text("No Restaurants Listed", style: TextStyle(color: Colors.black, fontSize: 18.0),)),
+                child: Center(child: Text("No Restaurants ", style: TextStyle(color: Colors.black, fontSize: 18.0),)),
               ) : ListView.builder(
                 primary: false,
                 shrinkWrap: true,

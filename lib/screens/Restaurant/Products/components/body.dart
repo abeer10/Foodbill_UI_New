@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -98,7 +99,21 @@ class _BodyState extends State<Body> {
                   children: [
                     Row(
                       children: [
-                        Image.asset(items[index].image ,width: 100,height: 100, fit: BoxFit.cover,),
+                        snapshot.data[index].data()["pic"] == null || snapshot.data[index].data()["pic"] == "" ?
+                        Image.asset("assets/images/biryani.jpeg", width: 100, height: 100, fit: BoxFit.fill,) :
+                        CachedNetworkImage(
+                          imageUrl: '${snapshot.data[index].data()["pic"]}',
+                          imageBuilder: (context, imageProvider) => Container(
+                            width: 100, height: 100,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.rectangle,
+                              image: DecorationImage(
+                                  image: imageProvider, fit: BoxFit.cover),
+                            ),
+                          ),
+                          placeholder: (context, url) => CircularProgressIndicator(),
+                          errorWidget: (context, url, error) => Icon(Icons.error),
+                        ),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -126,7 +141,7 @@ class _BodyState extends State<Body> {
 
                           ],
                         ),
-                        SizedBox(width: 130,),
+                        SizedBox(width: 100,),
                         Row(
                           children: [
                             SizedBox(width: 10,),

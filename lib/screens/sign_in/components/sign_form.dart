@@ -5,6 +5,7 @@ import 'package:shop_app/components/custom_surfix_icon.dart';
 import 'package:shop_app/components/form_error.dart';
 import 'package:shop_app/helper/keyboard.dart';
 import 'package:shop_app/screens/Customer/Home/trending.dart';
+import 'package:shop_app/screens/Restaurant/Invoice/Bill_Screen.dart';
 import 'package:shop_app/screens/Restaurant/Profile/Restaurant_Profile_Screen.dart';
 import 'package:shop_app/screens/login_success/login_success_screen.dart';
 import 'package:shop_app/screens/otp/otp_screen.dart';
@@ -56,7 +57,7 @@ class _SignFormState extends State<SignForm> {
           type = user.data()["type"];
           if(user.data()["type"] == "r"){
             Navigator.pushReplacement(context,  MaterialPageRoute(
-              builder: (context) => RestaurantProfile(),
+              builder: (context) => Bill_Screen(),
             ));
           } else {
             Navigator.pushReplacement(context,  MaterialPageRoute(
