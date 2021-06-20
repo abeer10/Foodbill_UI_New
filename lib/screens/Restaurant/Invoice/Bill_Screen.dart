@@ -33,8 +33,8 @@ class Bill_Screen extends StatelessWidget {
         title: Text("Orders"),
       ),
       body: SingleChildScrollView(
-          child: Container(child: Body())
-      ),
+          child:
+          Body()),
     );
   }
 }

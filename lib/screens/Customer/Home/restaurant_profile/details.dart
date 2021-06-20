@@ -9,6 +9,7 @@ import 'package:shop_app/screens/Customer/Home/restaurant_profile/smooth_star_ra
 
 class ProductDetails extends StatefulWidget {
   Map data;
+
   ProductDetails({this.data});
   @override
   _ProductDetailsState createState() => _ProductDetailsState();
@@ -31,6 +32,7 @@ class _ProductDetailsState extends State<ProductDetails> {
   @override
   Widget build(BuildContext context) {
     double rating = widget.data == null ? 0.0 : widget.data['rating'].toDouble();
+    print(widget.data);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -151,7 +153,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                         Map comment = comments[index];
                         return ListTile(
 
-                          title: Text("User"),
+                          title: snapshot.data[index].data()["customerName"] == null ? Text("User") : Text(snapshot.data[index].data()["customerName"]),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[

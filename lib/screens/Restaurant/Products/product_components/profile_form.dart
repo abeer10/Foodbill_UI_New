@@ -50,6 +50,11 @@ class _AddProduct_FormState extends State<AddProduct> {
         errors.remove(error);
       });
   }
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  void showInSnackBar(String value) {
+    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(value)));
+  }
 
   @override
   void initState() {
@@ -206,9 +211,8 @@ class _AddProduct_FormState extends State<AddProduct> {
                 }).then((value){
                   print("successfully entered");
                 });
-                Navigator.push(context,  MaterialPageRoute(
-                  builder: (context) => Product_Screen(),
-                ));
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                    Product_Screen()), (Route<dynamic> route) => false);
               }
             },
           )
@@ -222,14 +226,15 @@ class _AddProduct_FormState extends State<AddProduct> {
                 await _firestore.collection("restaurants_products").doc(userId).collection("products").doc(itemNo.toString()).set({
                   "name" : productNameCtrl.text,
                   "price" : int.parse(productPriceCtrl.text),
-                  "pic" : "",
+                  "pic" : imagePath,
                   "itemNo" : itemNo,
                   "qty" : 0,
 
                 }).then((value){
                   print("successfully entered");
                 });
-               Navigator.pop(context);
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                    Product_Screen()), (Route<dynamic> route) => false);
               }
             },
           ),
@@ -245,13 +250,13 @@ class _AddProduct_FormState extends State<AddProduct> {
 
       onChanged: (value) {
         if (value.isNotEmpty) {
-          removeError(error: kRestaurantNamelNullError);
+          removeError(error: kProductNamelNullError);
         }
         return null;
       },
       validator: (value) {
         if (value.isEmpty) {
-          addError(error: kRestaurantNamelNullError);
+          addError(error: kProductNamelNullError);
           return "";
         }
         return null;
@@ -273,13 +278,13 @@ class _AddProduct_FormState extends State<AddProduct> {
       keyboardType: TextInputType.phone,
       onChanged: (value) {
         if (value.isNotEmpty) {
-          removeError(error: kPhoneNumberNullError);
+          removeError(error: kProductlNullError);
         }
         return null;
       },
       validator: (value) {
         if (value.isEmpty) {
-          addError(error: kPhoneNumberNullError);
+          addError(error: kProductlNullError);
           return "";
         }
         return null;

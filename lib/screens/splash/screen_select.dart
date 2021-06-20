@@ -43,7 +43,7 @@ class _ScreenSelectionState extends State<ScreenSelection> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        child: CircularProgressIndicator(),
+        child: Center(child: CircularProgressIndicator()),
       ),
     );
   }

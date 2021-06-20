@@ -31,12 +31,11 @@ class _OrderDetailState extends State<OrderDetail> {
     uid =  await firebaseAuth.currentUser.uid;
     querySnapshot = await  _firestore.collection("restaurants_orders").doc(uid)
         .collection("orders").doc(widget.orderNo).collection("items").get();
-//   setState(() {
-//    total = documentSnapshot.data()["total_price"];
-//    qty = documentSnapshot.data()["qty"];
-//   });
+
     return querySnapshot.docs;
   }
+
+
 
 //  getOrderStatus() async {
 //    documentSnapshot = await _firestore.collection("restaurants_orders").doc(uid)
@@ -51,9 +50,17 @@ class _OrderDetailState extends State<OrderDetail> {
 //    return documentSnapshot;
 //  }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  void showInSnackBar(String value) {
+    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(value)));
+  }
+
 @override
   void initState() {
     getOrders();
+    total = widget.data["total_price"];
+
    // getOrderStatus();
     // TODO: implement initState
     super.initState();
@@ -62,6 +69,7 @@ class _OrderDetailState extends State<OrderDetail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
         title: Text("Order Detail"),
 
@@ -159,8 +167,8 @@ class _OrderDetailState extends State<OrderDetail> {
                                     IconButton(
                                         onPressed:(){
                                           setState(() {
-                                            _firestore.collection("restaurants_products").doc(uid)
-                                                .collection("products").doc(snapshot.data[index].data()["itemNo"].toString()).update(
+                                            _firestore.collection("restaurants_orders").doc(uid)
+                                                .collection("orders").doc(widget.orderNo.toString()).collection("items").doc(snapshot.data[index].data()["itemNo"].toString()).update(
                                                 {
                                                   "qty" : ++snapshot.data[index].data()["qty"],
                                                 }
@@ -202,57 +210,15 @@ class _OrderDetailState extends State<OrderDetail> {
                                   ],
                                 ),
                                 InkWell(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Icon(Icons.shopping_cart),
-                                  ),
-                                  onTap: (){
-                                    setState(() {
-                                      carts = !carts;
-                                    });
-
-                                    if(carts == true) {
-                                      _firestore.collection("restaurants_orders")
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(Icons.shopping_cart, color: Colors.green,),
+                                    ),
+                                    onTap: () {
+                                      _firestore.collection(
+                                          "restaurants_orders")
                                           .doc(uid).collection("orders").doc(
-                                          widget.orderNo.toString())
-                                          .collection("items").doc(
-                                          snapshot.data[index].data()["itemNo"]
-                                              .toString())
-                                          .set(
-                                          {
-                                            "name": snapshot.data[index]
-                                                .data()["name"],
-                                            "price": snapshot.data[index]
-                                                .data()["price"],
-                                            "qty": snapshot.data[index]
-                                                .data()["qty"],
-                                            "orderNo": widget.orderNo,
-                                            "rating": 0,
-                                            "review": "",
-                                            "customerId": widget.data["customerId"],
-                                            "total_price": total,
-                                            "status": "pending"
-                                          }
-                                      );
-
-                                      _firestore.collection("restaurants_orders")
-                                          .doc(uid).collection("orders").doc(
-                                          widget.orderNo.toString())
-                                          .update(
-                                          {
-                                            "orderNo": widget.orderNo,
-                                            "rating": 0,
-                                            "review": "",
-                                            "customerId": widget.data["customerId"],
-                                            "total_price": total,
-                                            "status": "pending"
-                                          }
-                                      );
-
-                                      _firestore.collection("customer_orders")
-                                          .doc(widget.data["customerId"]).collection(
-                                          "restaurants").doc(uid).collection(
-                                          "orders").doc(widget.orderNo.toString())
+                                          widget.data["orderNo"].toString())
                                           .collection("items").doc(
                                           snapshot.data[index].data()["itemNo"]
                                               .toString())
@@ -264,70 +230,133 @@ class _OrderDetailState extends State<OrderDetail> {
                                                 .data()["price"],
                                             "qty": snapshot.data[index]
                                                 .data()["qty"],
-                                            "orderNo": widget.orderNo,
-                                            "rating": 0,
-                                            "review": "",
-                                            "customerId": widget.data["customerId"],
-                                            "total_price": total,
-                                            "status": "pending"
+                                            "orderNo": widget.data["orderNo"],
+                                            "itemNo": snapshot.data[index]
+                                                .data()["itemNo"],
+                                            "pic": snapshot.data[index]
+                                                .data()["pic"]
                                           }
                                       );
 
-                                      _firestore.collection("customer_orders")
-                                          .doc(widget.data["customerId"]).collection(
-                                          "restaurants").doc(uid).collection(
-                                          "orders").doc(widget.orderNo.toString())
+                                      _firestore.collection("restaurants_orders")
+                                          .doc(uid).collection("orders").doc(
+                                       widget.data["orderNo"].toString())
                                           .update(
                                           {
 
-                                            "orderNo": widget.orderNo,
-                                            "rating": 0,
-                                            "review": "",
-                                            "customerId": widget.data["customerId"],
                                             "total_price": total,
-                                            "status": "pending"
+
                                           }
                                       );
 
-
-                                      _firestore.collection(
-                                          "restaurants_products").doc(uid)
-                                          .collection("products").doc(
-                                          snapshot.data[index].data()["itemNo"]
-                                              .toString()).update(
-                                          {
-                                            "qty": 0,
-                                          }
-                                      );
-                                    } else {
-                                      _firestore.collection("restaurants_orders")
-                                          .doc(uid).collection("orders").doc(
-                                          widget.orderNo.toString())
+                                      _firestore.collection("customer_orders")
+                                          .doc(widget.data["customerId"])
+                                          .collection(
+                                          "restaurants").doc(uid).collection(
+                                          "orders").doc(
+                                          widget.data["orderNo"].toString())
                                           .collection("items").doc(
                                           snapshot.data[index].data()["itemNo"]
-                                              .toString()).delete();
+                                              .toString())
+                                          .update(
+                                          {
+                                            "name": snapshot.data[index]
+                                                .data()["name"],
+                                            "price": snapshot.data[index]
+                                                .data()["price"],
+                                            "qty": snapshot.data[index]
+                                                .data()["qty"],
+                                            "orderNo": widget.data["orderNo"],
+                                            "itemNo": snapshot.data[index]
+                                                .data()["itemNo"],
+                                            "pic": snapshot.data[index]
+                                                .data()["pic"]
+                                          }
+                                      );
+                                      print(widget.data["customerId"]);
+                                      print(widget.data["orderNo"]);
+                                      print(uid);
 
                                       _firestore.collection("customer_orders")
                                           .doc(widget.data["customerId"]).collection(
                                           "restaurants").doc(uid).collection(
-                                          "orders").doc(widget.orderNo.toString())
-                                          .collection("items").doc(
-                                          snapshot.data[index].data()["itemNo"]
-                                              .toString()).delete();
-
-                                      _firestore.collection(
-                                          "restaurants_products").doc(uid)
-                                          .collection("products").doc(
-                                          snapshot.data[index].data()["itemNo"]
-                                              .toString()).update(
+                                          "orders").doc(widget.data["orderNo"].toString())
+                                          .update(
                                           {
-                                            "qty": 0,
+                                            "total_price": total,
                                           }
                                       );
 
+
+//                                      _firestore.collection("customer_orders")
+//                                          .doc(widget.data["customerId"]).collection(
+//                                          "restaurants").doc(uid)
+//                                          .set(
+//                                          {
+//                                            "name" : documentSnapshot.data()["name"],
+//                                            "phone" : documentSnapshot.data()["phone"],
+//                                            "address" : documentSnapshot.data()["address"],
+//                                            "about" : documentSnapshot.data()["about"],
+//                                            "pic" : documentSnapshot.data()["pic"]
+//                                          }
+//                                      );
+//
+//                                    }
+                                    showInSnackBar("Item Successfully updated in cart");
                                     }
-                                  },
-                                )
+                                    ),
+                                InkWell(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Icon(Icons.delete, color: Colors.red,),
+                                    ),
+                                    onTap: (){
+
+                                      _firestore.collection("restaurants_orders")
+                                          .doc(uid).collection("orders").doc(
+                                          widget.data["orderNo"].toString())
+                                          .collection("items").doc(
+                                          snapshot.data[index].data()["itemNo"]
+                                              .toString()).delete();
+
+                                      _firestore.collection("customer_orders")
+                                          .doc(widget.data["customerId"]).collection(
+                                          "restaurants").doc(uid).collection(
+                                          "orders").doc(widget.data["orderNo"].toString())
+                                          .collection("items").doc(
+                                          snapshot.data[index].data()["itemNo"]
+                                              .toString()).delete();
+
+
+//                                      _firestore.collection("customer_orders")
+//                                          .doc(widget.data["customerId"]).collection(
+//                                          "restaurants").doc(uid)
+//                                          .set(
+//                                          {
+//                                            "name" : documentSnapshot.data()["name"],
+//                                            "phone" : documentSnapshot.data()["phone"],
+//                                            "address" : documentSnapshot.data()["address"],
+//                                            "about" : documentSnapshot.data()["about"],
+//                                            "pic" : documentSnapshot.data()["pic"]
+//                                          }
+//                                      );
+                                      _firestore.collection("restaurants_products").doc(uid)
+                                          .collection("products").doc(snapshot.data[index]
+                                          .data()["itemNo"].toString()).update({
+                                        "qty" : 0,
+                                      });
+                                      setState(() {
+                                        total = total - (snapshot.data[index]
+                                            .data()["qty"] * snapshot.data[index]
+                                            .data()["price"]);
+                                        if(total <= 0 ){
+                                          total = 0;
+                                        }
+                                      });
+                                      showInSnackBar("item deleted successfully");
+                                    }
+
+                                ),
 
                               ],
                             ),
@@ -387,7 +416,7 @@ class _OrderDetailState extends State<OrderDetail> {
                             ),
                             Padding(
                               padding: const EdgeInsets.only(right: 15),
-                              child: Text(  "Rs ${widget.data["total_price"]}",style: TextStyle(
+                              child: Text(  "Rs ${total}",style: TextStyle(
                                 fontFamily: 'Montserrat Regular',
                                 color: Colors.black,
                                 fontSize: 16,
@@ -514,13 +543,15 @@ class _OrderDetailState extends State<OrderDetail> {
               ],
             ),
            SizedBox(height: 300,),
-            Container(
+            widget.data["review"] != null ?  Container() : Container(
               width: double.infinity,
               height: 50,
               margin: EdgeInsets.only(left: 20,right: 20, bottom: 10),
 
               child: RaisedButton(onPressed: (){
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Bill_Screen()));
+                showInSnackBar("Order updated Successfully");
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                    Bill_Screen()), (Route<dynamic> route) => false);
               },
                 child: Text("Update",style: TextStyle(
                   fontFamily: 'Montserrat Regular',

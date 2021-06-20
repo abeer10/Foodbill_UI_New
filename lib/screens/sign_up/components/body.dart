@@ -54,7 +54,7 @@ class Body extends StatelessWidget {
 
                 GestureDetector(
                   onTap: () {
-                    Navigator.pushNamed(context, SignInScreen.routeName);
+                    Navigator.pushReplacementNamed(context, SignInScreen.routeName);
                   },
                   child: Text(
                     "Already have an account, Sign-in",

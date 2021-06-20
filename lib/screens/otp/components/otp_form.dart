@@ -193,20 +193,24 @@ class _OtpFormState extends State<OtpForm> {
                       }
                   );
                   if (widget.user == "r") {
+
                     Navigator.pushReplacement(context, MaterialPageRoute(
                       builder: (context) => RestaurantProfile(),
                     ));
                   } else {
+
                     Navigator.pushReplacement(context, MaterialPageRoute(
                         builder: (context) => Trending()));
                   }
                 }
                else  {
                 if(user.data()["type"] == "r"){
+
                   Navigator.pushReplacement(context,  MaterialPageRoute(
                     builder: (context) => RestaurantProfile(),
                   ));
                 } else {
+
                   Navigator.pushReplacement(context,  MaterialPageRoute(
                       builder: (context) => Trending() ));
                 }

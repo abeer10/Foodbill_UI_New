@@ -18,7 +18,7 @@ class Product_Screen  extends StatelessWidget {
         actions: [
           FlatButton.icon(
               onPressed: () {
-                 Navigator.of(context).push(
+                 Navigator.of(context).pushReplacement(
                    MaterialPageRoute(
                      builder: (BuildContext context) {
                        return AddProduct(data: null,);

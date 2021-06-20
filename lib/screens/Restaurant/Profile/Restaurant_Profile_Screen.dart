@@ -18,8 +18,11 @@ class RestaurantProfile extends StatelessWidget {
 
     return documentSnapshot.data();
   }
+
+
   @override
   Widget build(BuildContext context) {
+    getUserData();
     return Scaffold(
       bottomNavigationBar:
           CustomBottomNavBarR(selectedMenu: MenuState2.setting),

@@ -158,7 +158,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 text: "Save",
                 press: () {
                   if (_formKey.currentState.validate()) {
-                    print("ab");
                    Get.snackbar("Profile", "Data Saved", duration: Duration(seconds: 2), backgroundColor: Colors.red);
                     _firestore.collection("restaurants").doc(userId).update({
                       "name" : NameCtrl.text,
@@ -166,8 +165,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                     }).then((value){
 
-//                      Navigator.pushReplacement(context,  MaterialPageRoute(
-//                          builder: (context) => Trending() ));
+                      Navigator.pushReplacement(context,  MaterialPageRoute(
+                          builder: (context) => Trending() ));
                     });
                     //  Navigator.pushNamed(context, OtpScreen.routeName);
                   }

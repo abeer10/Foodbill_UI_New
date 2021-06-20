@@ -58,7 +58,10 @@ class _TrendingItemsState extends State<TrendingItems> {
                           topLeft: Radius.circular(10),
                           topRight: Radius.circular(10),
                         ),
-                        child: Image.asset(
+                        child: widget.img == null ? Image.asset(
+                          "${widget.img}",
+                          fit: BoxFit.cover,
+                        ) : Image.network(
                           "${widget.img}",
                           fit: BoxFit.cover,
                         ),

@@ -28,13 +28,14 @@ class _NewBillState extends State<NewBill> {
   List qty =[];
   int orderNo;
   bool carts = false;
-
-
+  DocumentSnapshot documentSnapshot;
+  QuerySnapshot querySnapshot;
+  String name;
 
 
   getProducts() async {
     uid =  await firebaseAuth.currentUser.uid;
-    QuerySnapshot querySnapshot = await  _firestore.collection("restaurants_products").doc(uid)
+    querySnapshot = await  _firestore.collection("restaurants_products").doc(uid)
         .collection("products").get();
     //qty.length = querySnapshot.docs.length;
 //    for(int i; i<querySnapshot.docs.length; i++){
@@ -43,17 +44,42 @@ class _NewBillState extends State<NewBill> {
     return querySnapshot.docs;
   }
 
+
+  getUserData() async {
+    uid =   await firebaseAuth.currentUser.uid;
+    documentSnapshot = await _firestore.collection("restaurants").doc(uid).get();
+    print(documentSnapshot.data());
+    return documentSnapshot.data();
+  }
+
+  getCustomerData(String uid) async {
+
+    documentSnapshot = await _firestore.collection("restaurants").doc(uid).get();
+    name = documentSnapshot.data()["name"];
+    print(documentSnapshot.data());
+    return documentSnapshot.data();
+  }
+
   @override
   void initState() {
+
+    getUserData();
     var num = Random();
+
      orderNo = num.nextInt(100000);
     // TODO: implement initState
     super.initState();
+  }
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  void showInSnackBar(String value) {
+    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(value)));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -111,13 +137,7 @@ class _NewBillState extends State<NewBill> {
                         icon: Icon(Icons.arrow_downward),
                         items: department,
                         onChanged: (orgs) async {
-                          final snackBar = SnackBar(
-                            content: Text(
-                              'Selected Customer is is a $orgs',
-                              style: TextStyle(color: Colors.black),
-                            ),
-                          );
-                          Scaffold.of(context).showSnackBar(snackBar);
+                          getCustomerData(orgs);
                           setState(() {
                             selectedCustomer = orgs;
                           });
@@ -198,11 +218,13 @@ class _NewBillState extends State<NewBill> {
                                      children: [
                                        Padding(
                                          padding: const EdgeInsets.only(top:8.0, left: 8.0),
-                                         child: Text(snapshot.data[index].data()["name"],style: TextStyle(
+                                         child: Text(snapshot.data[index].data()["name"],
+                                           style: TextStyle(
                                            fontFamily: 'Montserrat Regular',
                                            color: Colors.black,
                                            fontSize: 16,
                                            fontWeight: FontWeight.w600,
+
 
                                          ),),
                                        ),
@@ -225,6 +247,7 @@ class _NewBillState extends State<NewBill> {
                                  children: [
                                    IconButton(
                                        onPressed:(){
+                                        // qty.insert(index ,++snapshot.data[index].data()["qty"]);
                                          setState(() {
                                            _firestore.collection("restaurants_products").doc(uid)
                                                .collection("products").doc(snapshot.data[index].data()["itemNo"].toString()).update(
@@ -252,6 +275,7 @@ class _NewBillState extends State<NewBill> {
                                        if( snapshot.data[index].data()["qty"] <=0) {
                                          snapshot.data[index].data()["qty"]=0;
                                        }else {
+                                         //qty.insert(index ,snapshot.data[index].data()["qty"]);
                                          _firestore.collection("restaurants_products").doc(uid)
                                              .collection("products").doc(snapshot.data[index].data()["itemNo"].toString()).update(
                                              {
@@ -271,15 +295,9 @@ class _NewBillState extends State<NewBill> {
                                InkWell(
                                    child: Padding(
                                      padding: const EdgeInsets.all(8.0),
-                                     child: Icon(Icons.shopping_cart, color: carts ? Colors.red : Colors.green,),
+                                     child: Icon(Icons.shopping_cart, color: Colors.green,),
                                    ),
                                  onTap: (){
-
-                                     setState(() {
-                                       carts = !carts;
-                                     });
-
-                                   if(carts == true) {
                                      _firestore.collection("restaurants_orders")
                                          .doc(uid).collection("orders").doc(
                                          orderNo.toString())
@@ -295,11 +313,9 @@ class _NewBillState extends State<NewBill> {
                                            "qty": snapshot.data[index]
                                                .data()["qty"],
                                            "orderNo": orderNo,
-                                           "rating": 0,
-                                           "review": "",
-                                           "customerId": selectedCustomer,
-                                           "total_price": total,
-                                           "status": "pending"
+                                           "itemNo" : snapshot.data[index].data()["itemNo"],
+                                           "pic" : snapshot.data[index].data()["pic"]
+
                                          }
                                      );
 
@@ -310,10 +326,11 @@ class _NewBillState extends State<NewBill> {
                                          {
                                            "orderNo": orderNo,
                                            "rating": 0,
-                                           "review": "",
+                                           "review": null,
                                            "customerId": selectedCustomer,
                                            "total_price": total,
-                                           "status": "pending"
+                                           "status": "pending",
+                                           "customerName" : name == null ? "User" : name,
                                          }
                                      );
 
@@ -333,11 +350,8 @@ class _NewBillState extends State<NewBill> {
                                            "qty": snapshot.data[index]
                                                .data()["qty"],
                                            "orderNo": orderNo,
-                                           "rating": 0,
-                                           "review": "",
-                                           "customerId": selectedCustomer,
-                                           "total_price": total,
-                                           "status": "pending"
+                                           "itemNo" : snapshot.data[index].data()["itemNo"],
+                                           "pic" : snapshot.data[index].data()["pic"]
                                          }
                                      );
 
@@ -350,52 +364,83 @@ class _NewBillState extends State<NewBill> {
 
                                            "orderNo": orderNo,
                                            "rating": 0,
-                                           "review": "",
-                                           "customerId": selectedCustomer,
+                                           "review": null,
+                                           "restaurantId": uid,
                                            "total_price": total,
                                            "status": "pending"
                                          }
                                      );
 
 
-                                     _firestore.collection(
-                                         "restaurants_products").doc(uid)
-                                         .collection("products").doc(
-                                         snapshot.data[index].data()["itemNo"]
-                                             .toString()).update(
-                                         {
-                                           "qty": 0,
-                                         }
-                                     );
-                                   } else {
-                                     _firestore.collection("restaurants_orders")
-                                         .doc(uid).collection("orders").doc(
-                                         orderNo.toString())
-                                         .collection("items").doc(
-                                         snapshot.data[index].data()["itemNo"]
-                                             .toString()).delete();
-
                                      _firestore.collection("customer_orders")
                                          .doc(selectedCustomer).collection(
-                                         "restaurants").doc(uid).collection(
-                                         "orders").doc(orderNo.toString())
-                                         .collection("items").doc(
-                                         snapshot.data[index].data()["itemNo"]
-                                             .toString()).delete();
-
-                                     _firestore.collection(
-                                         "restaurants_products").doc(uid)
-                                         .collection("products").doc(
-                                         snapshot.data[index].data()["itemNo"]
-                                             .toString()).update(
+                                         "restaurants").doc(uid)
+                                         .set(
                                          {
-                                           "qty": 0,
+                                           "id" : uid,
+                                           "name" : documentSnapshot.data()["name"],
+                                           "phone" : documentSnapshot.data()["phone"],
+                                           "address" : documentSnapshot.data()["address"],
+                                           "about" : documentSnapshot.data()["about"],
+                                           "pic" : documentSnapshot.data()["pic"]
                                          }
                                      );
+                                     showInSnackBar("Item Successfully Added to Cart");
 
                                    }
-                                 },
-                               )
+                               ),
+                               InkWell(
+                                 child: Padding(
+                                   padding: const EdgeInsets.all(8.0),
+                                   child: Icon(Icons.delete, color: Colors.red,),
+                                 ),
+                                 onTap: (){
+
+                                     _firestore.collection("restaurants_orders")
+                                         .doc(uid).collection("orders").doc(
+                                         orderNo.toString())
+                                         .collection("items").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString()).delete();
+
+                                     _firestore.collection("customer_orders")
+                                         .doc(selectedCustomer).collection(
+                                         "restaurants").doc(uid).collection(
+                                         "orders").doc(orderNo.toString())
+                                         .collection("items").doc(
+                                         snapshot.data[index].data()["itemNo"]
+                                             .toString()).delete();
+
+
+                                     _firestore.collection("customer_orders")
+                                         .doc(selectedCustomer).collection(
+                                         "restaurants").doc(uid)
+                                         .set(
+                                         {
+                                           "name" : documentSnapshot.data()["name"],
+                                           "phone" : documentSnapshot.data()["phone"],
+                                           "address" : documentSnapshot.data()["address"],
+                                           "about" : documentSnapshot.data()["about"],
+                                           "pic" : documentSnapshot.data()["pic"]
+                                         }
+                                     );
+                                     _firestore.collection("restaurants_products").doc(uid)
+                                         .collection("products").doc(snapshot.data[index]
+                                         .data()["itemNo"].toString()).update({
+                                       "qty" : 0,
+                                     });
+                                  setState(() {
+                                    total = total - (snapshot.data[index]
+                                        .data()["qty"] * snapshot.data[index]
+                                        .data()["price"]);
+                                    if(total <= 0 ){
+                                      total = 0;
+                                    }
+                                  });
+                                     showInSnackBar("Item Successfully Deleted from Cart");
+                                   }
+
+                               ),
 
                              ],
                            ),
@@ -472,139 +517,56 @@ class _NewBillState extends State<NewBill> {
                   ),
                 ),
 
-              Container(
-                width: double.infinity,
-                  height:MediaQuery.of(context).size.height*0.30 ,
-                  margin: EdgeInsets.only(left: 10,right: 10,top: 10),
-//                    decoration: BoxDecoration(
-//                      borderRadius: BorderRadius.circular(20),
-//                      color: Colors.white,
-//                      boxShadow: [
-//                        BoxShadow(
-//                            color: Colors.grey[300],
-//                            offset: Offset(4.0,4.0),
-//                            blurRadius: 10.0,
-//                            spreadRadius: 0.0),
-//                        BoxShadow(
-//                            color: Colors.white10,
-//                            offset: Offset(0.0,0.0),
-//                            blurRadius: 0.0,
-//                            spreadRadius: 0.0),
-//                      ],
-//
-//                  ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-//                      Padding(
-//                        padding: const EdgeInsets.only(top: 15),
-//                        child: Row(
-//                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                          children: [
-//                            Padding(
-//                              padding: const EdgeInsets.only(left: 15),
-//                              child: Text(  "Rating",style: TextStyle(
-//                                fontFamily: 'Montserrat Regular',
-//                                color: Colors.black,
-//                                fontSize: 16,
-//                                fontWeight: FontWeight.w600,
-//
-//                              ),),
-//                            ),
-//                            Padding(
-//                              padding: const EdgeInsets.only(right: 15),
-//                              child:  SmoothStarRating(
-//                                starCount: 5,
-//                                color: Constants.ratingBG,
-//                                allowHalfRating: true,
-//                                rating: 5.0,
-//                                size: 20.0,
-//                              ),
-//                            ),
-//
-//                          ],
-//                        ),
-//                      ),
-//
-//                     Padding(
-//                        padding: const EdgeInsets.only(left: 15, top: 20),
-//                        child: Text(  "Review",style: TextStyle(
-//                          fontFamily: 'Montserrat Regular',
-//                          color: Colors.black,
-//                          fontSize: 16,
-//                          fontWeight: FontWeight.w600,
-//
-//                        ),),
-//                      ),
-//                      Padding(
-//                        padding: const EdgeInsets.only(left: 15, top: 15),
-//                        child: Text(  "Best Restaurant In Town",style: TextStyle(
-//                          fontFamily: 'Montserrat Regular',
-//                          color: Colors.black,
-//                          fontSize: 16,
-//
-//
-//                        ),),
-//                      ),
-
-//                      Padding(
-//                        padding: const EdgeInsets.only(left: 15, top: 20),
-//                        child: Text(  "Review",style: TextStyle(
-//                          fontFamily: 'Montserrat Regular',
-//                          color: Colors.black,
-//                          fontSize: 16,
-//                          fontWeight: FontWeight.w600,
-//
-//                        ),),
-//                      ),
-//                      Padding(
-//                        padding: const EdgeInsets.only(left: 15, top: 15, right: 15),
-//                        child: TextFormField(
-//                          maxLines: 3,
-//                          keyboardType: TextInputType.multiline,
-//                         // onSaved: (newValue) => restaurantAbout = newValue,
-//
-//                          decoration: InputDecoration(
-//                            labelText: "Review",
-//                            hintText: "Write a review about restaurant",
-//                            // If  you are using latest version of flutter then lable text and hint text shown like this
-//                            // if you r using flutter less then 1.20.* then maybe this is not working properly
-//                            floatingLabelBehavior: FloatingLabelBehavior.always,
-//                            // suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Phone.svg"),
-//                          ),
-//                        )),
-
-                  ],
-                ),
-              )
               ],
             ),
-//            Container(
-//
-//              width: double.infinity,
-//              height: 50,
-//              margin: EdgeInsets.only(left: 20,right: 20),
-//
-//              child: RaisedButton(onPressed: (){},
-//                child: Text("Update",style: TextStyle(
-//                  fontFamily: 'Montserrat Regular',
-//                  color: Colors.white,
-//                  fontSize: 16,
-//                  fontWeight: FontWeight.w600,
-//                ),),
-//                shape: StadiumBorder(),
-//                color: orangeColors,
-//
-//              ),
-//            ),
+            SizedBox(height: 10,),
             Container(
 
               width: double.infinity,
               height: 50,
               margin: EdgeInsets.only(left: 20,right: 20, bottom: 10),
 
-              child: RaisedButton(onPressed: (){
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Bill_Screen()));
+              child: RaisedButton(onPressed: () async {
+                await _firestore.collection("restaurants_orders").doc(uid).collection("orders").doc(orderNo.toString()).delete();
+                await _firestore.collection("customer_orders").doc(selectedCustomer).collection("restaurants").doc(uid).collection("orders").doc(orderNo.toString()).delete();
+                for(int i =0; i<querySnapshot.docs.length; i++){
+                  await  _firestore.collection("restaurants_products").doc(uid)
+                      .collection("products").doc(querySnapshot.docs[i].data()["itemNo"].toString()).update({
+                    "qty" : 0,
+                  });
+
+                };
+                showInSnackBar("Entire Order Cancel Successfully");
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                    Bill_Screen()), (Route<dynamic> route) => false);
+              },
+                child: Text("Cancel Entire Order",style: TextStyle(
+                  fontFamily: 'Montserrat Regular',
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),),
+                shape: StadiumBorder(),
+                color: orangeColors,
+
+              ),
+            ),
+            SizedBox(height: 10,),
+            Container(
+
+              width: double.infinity,
+              height: 50,
+              margin: EdgeInsets.only(left: 20,right: 20, bottom: 10),
+              child: RaisedButton(onPressed: ()async {
+                for(int i =0; i<querySnapshot.docs.length; i++){
+                  await  _firestore.collection("restaurants_products").doc(uid)
+                      .collection("products").doc(querySnapshot.docs[i].data()["itemNo"].toString()).update({
+                    "qty" : 0,
+                  });
+
+                };
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                    Bill_Screen()), (Route<dynamic> route) => false);
               },
                 child: Text("Generate",style: TextStyle(
                   fontFamily: 'Montserrat Regular',
@@ -616,7 +578,7 @@ class _NewBillState extends State<NewBill> {
                 color: orangeColors,
 
               ),
-            )
+            ),
           ],
         ),
       ),

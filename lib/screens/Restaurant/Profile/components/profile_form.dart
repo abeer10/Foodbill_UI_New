@@ -55,6 +55,11 @@ class _Profile_FormState extends State<Profile_Form> {
       });
   }
 
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+
+  void showInSnackBar(String value) {
+    _scaffoldKey.currentState.showSnackBar(new SnackBar(content: new Text(value)));
+  }
 
   getUserData() async {
     DocumentSnapshot documentSnapshot = await _firestore.collection("restaurants").doc(userId).get();
@@ -64,6 +69,7 @@ class _Profile_FormState extends State<Profile_Form> {
       restaurantAboutCtrl.text = documentSnapshot.data()["about"];
       restaurantAddressCtrl.text = documentSnapshot.data()["address"];
       phonrNumberCtrl.text = documentSnapshot.data()["phone"];
+      imagePath = documentSnapshot.data()["pic"];
     });
     return documentSnapshot.data();
   }

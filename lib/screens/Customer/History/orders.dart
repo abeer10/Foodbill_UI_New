@@ -24,23 +24,36 @@ class _OrdersState extends State<Orders>{
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String uid;
-
+int i=0;
   int total=0;
 
-  getOrders() async {
+  getOrders(BuildContext context) async {
+    print(widget.data);
+    print("abeer");
     uid =  await firebaseAuth.currentUser.uid;
+    print(widget.data["id"]);
     QuerySnapshot querySnapshot = await  _firestore.collection("customer_orders").doc(uid)
-        .collection("restaurants").doc(widget.data["uid"]).collection("orders").get();
+        .collection("restaurants").doc(widget.data["id"]).collection("orders").get();
+    if(i==0) {
+      PageRefresh();
 
+    }
     return querySnapshot.docs;
   }
 
-
+  PageRefresh(){
+    i++;
+    Future.delayed(const Duration(milliseconds: 1000), () {
+      setState(() {
+      });
+    });
+  }
 
 
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Orders"),
@@ -50,7 +63,7 @@ class _OrdersState extends State<Orders>{
             child: Column(
               children: [
                 FutureBuilder(
-                    future: getOrders(),
+                    future: getOrders(context),
                     builder: (context, snapshot){
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return Center(
@@ -67,13 +80,14 @@ class _OrdersState extends State<Orders>{
                             itemBuilder: (context, index) {
                               total = total  + snapshot.data[index].data()["total_price"];
                               //totalCal(snapshot.data[index].data()["total_price"]);
+                              print(widget.data["id"]);
                               print(total);
                               return InkWell(
                                 onTap: (){
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (BuildContext context) {
-                                      return OrderDetails(orderNo: snapshot.data[index].data()["orderNo"].toString(), uid: widget.data["uid"],);
+                                      return OrderDetails(orderNo: snapshot.data[index].data()["orderNo"].toString(), uid: widget.data["id"], data: snapshot.data[index].data(),);
                                     },
                                   ),
                                 );
@@ -107,9 +121,16 @@ class _OrdersState extends State<Orders>{
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text("Order# ${snapshot.data[index].data()["orderNo"].toString()}" ,  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                                          Text("Restaurant: ${snapshot.data[index].data()["name"]}"),
+                                          Text("Restaurant: ${widget.data["name"]}"),
                                           Text("Price: Rs ${snapshot.data[index].data()["total_price"].toString()}"),
-                                          Text("Status:  ${snapshot.data[index].data()["status"]}"),
+                                          Text("Status:  ${snapshot.data[index].data()["status"]}",
+                                            style: TextStyle(color:
+                                            snapshot.data[index].data()["status"] == "pending" ?
+                                            Colors.yellow
+                                                : snapshot.data[index].data()["status"] == "modification" ?
+                                            Colors.red : Colors.green
+
+                                            ),),
                                           snapshot.data[index].data()["review"] == null ||
                                               snapshot.data[index].data()["review"] == "" ?
                                           Text("Review: No Review") :
@@ -132,7 +153,6 @@ class _OrdersState extends State<Orders>{
 
 
                 SizedBox(height: 100,),
-                Text("$total"),
                 Container(
                   width: double.infinity,
                   height: 60,
