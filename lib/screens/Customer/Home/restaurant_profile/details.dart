@@ -6,7 +6,7 @@ import 'package:shop_app/screens/Customer/Home/restaurant_profile/const.dart';
 import 'package:shop_app/screens/Customer/Home/restaurant_profile/foods.dart';
 import 'package:shop_app/screens/Customer/Home/restaurant_profile/badge.dart';
 import 'package:shop_app/screens/Customer/Home/restaurant_profile/smooth_star_rating.dart';
-
+import 'package:get/get.dart';
 class ProductDetails extends StatefulWidget {
   Map data;
 
@@ -20,10 +20,17 @@ class _ProductDetailsState extends State<ProductDetails> {
   FirebaseFirestore _firestore = FirebaseFirestore.instance;
   QuerySnapshot querySnapshot;
   int rev=0;
+  int refresh = 0;
   getOrders() async {
     querySnapshot = await  _firestore.collection("restaurants_orders").doc(widget.data["uid"])
-        .collection("orders").where("review", isNotEqualTo: "").get();
+        .collection("orders").where("rating", isNotEqualTo: 0).get();
        rev = querySnapshot.docs.length;
+       if(refresh == 0 ){
+         setState(() {
+
+         });
+         refresh++;
+       }
        print(rev);
     return querySnapshot.docs;
   }
@@ -99,7 +106,7 @@ class _ProductDetailsState extends State<ProductDetails> {
                   ),
                   SizedBox(width: 10.0),
                   Text(
-                    "$rating ($rev Reviews)",
+                    "${rating.toStringAsFixed(1)} ($rev Reviews)",
                     style: TextStyle(
                       fontSize: 11.0,
                     ),
@@ -150,9 +157,8 @@ class _ProductDetailsState extends State<ProductDetails> {
                       physics: NeverScrollableScrollPhysics(),
                       itemCount: snapshot.data.length,
                       itemBuilder: (BuildContext context, int index) {
-                        Map comment = comments[index];
+                        //Map comment = comments[index];
                         return ListTile(
-
                           title: snapshot.data[index].data()["customerName"] == null ? Text("User") : Text(snapshot.data[index].data()["customerName"]),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,9 +183,9 @@ class _ProductDetailsState extends State<ProductDetails> {
                                 ],
                               ),
                               SizedBox(height: 7.0),
-                              Text(
-                                snapshot.data[index].data()["review"],
-                              ),
+                              snapshot.data[index].data()["review"] != null ? Text(
+                                snapshot.data[index].data()["review"]) : Text(""),
+
                             ],
                           ),
                         );

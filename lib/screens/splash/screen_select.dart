@@ -21,14 +21,17 @@ class _ScreenSelectionState extends State<ScreenSelection> {
 
   getUser(BuildContext context) async {
     var user = await _firestore.collection("restaurants").doc(auth.currentUser.uid).get();
-    type = user.data()["type"];
-    if(user.data()["type"] == "r"){
+    var user2 = await _firestore.collection("customers").doc(auth.currentUser.uid).get();
+
+    if(user.data() != null){
       Navigator.pushReplacement(context,  MaterialPageRoute(
         builder: (context) => Bill_Screen(),
       ));
-    } else {
+    } else if (user2.data() != null){
       Navigator.pushReplacement(context,  MaterialPageRoute(
           builder: (context) => Trending() ));
+    } else {
+      print("please Login");
     }
   }
 

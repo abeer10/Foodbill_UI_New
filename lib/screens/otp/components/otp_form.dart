@@ -163,7 +163,7 @@ class _OtpFormState extends State<OtpForm> {
           DefaultButton(
             text: "Continue",
             press: () async {
-              print("a");
+
               print(widget.user);
               print(pin1.text + pin2.text + pin3.text + pin4.text + pin5.text +
                   pin6.text);
@@ -179,26 +179,50 @@ class _OtpFormState extends State<OtpForm> {
                 print(result.user.uid);
                 var user = await _firestore.collection("restaurants").doc(result.user.uid).get();
                 if(user.data() == null) {
-                  _firestore.collection("restaurants").doc(result.user.uid).set(
-                      {
-                        "uid": result.user.uid,
-                        "name": null,
-                        "phone": widget.phone,
-                        "address": "",
-                        "about": "",
-                        "pic": "",
-                        "type": "",
-                        "rating": 0,
-                        "type": widget.user
-                      }
-                  );
+//                  _firestore.collection("restaurants").doc(result.user.uid).set(
+//                      {
+//                        "uid": result.user.uid,
+//                        "name": null,
+//                        "phone": widget.phone,
+//                        "address": "",
+//                        "about": "",
+//                        "pic": "",
+//                        "type": "",
+//                        "rating": 0,
+//                        "type": widget.user,
+//                        "search" : null
+//                      }
+//                  );
                   if (widget.user == "r") {
-
+                    _firestore.collection("restaurants").doc(result.user.uid).set(
+                        {
+                          "uid": result.user.uid,
+                          "name": null,
+                          "phone": widget.phone,
+                          "address": "",
+                          "about": "",
+                          "pic": "",
+                          "rating": 0,
+                          "type": widget.user,
+                          "search" : null
+                        }
+                    );
                     Navigator.pushReplacement(context, MaterialPageRoute(
                       builder: (context) => RestaurantProfile(),
                     ));
                   } else {
-
+                    _firestore.collection("customers").doc(result.user.uid).set(
+                        {
+                          "uid": result.user.uid,
+                          "name": null,
+                          "phone": widget.phone,
+                          "address": "",
+                          "about": "",
+                          "pic": "",
+                          "rating": 0,
+                          "type": widget.user
+                        }
+                    );
                     Navigator.pushReplacement(context, MaterialPageRoute(
                         builder: (context) => Trending()));
                   }

@@ -76,7 +76,7 @@ class _BodyState extends State<Body> {
               return Container(
                 width: double.infinity,
                 height: 60,
-                margin: EdgeInsets.only(left: 10,right: 10,top: 10),
+              //  margin: EdgeInsets.only(left: 10,right: 10,top: 10),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(20),
                   color: Colors.white,
@@ -98,7 +98,6 @@ class _BodyState extends State<Body> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Row(
-
                       children: [
                         snapshot.data[index].data()["pic"] == null || snapshot.data[index].data()["pic"] == "" ?
                         Image.asset("assets/images/biryani.jpeg", width: 100, height: 100, fit: BoxFit.fill,) :
@@ -118,10 +117,11 @@ class _BodyState extends State<Body> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-
                             Padding(
                               padding: const EdgeInsets.only(top:8.0, left: 8.0),
-                              child: Text(snapshot.data[index].data()["name"],  style: TextStyle(
+                              child: Text(snapshot.data[index].data()["name"],
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
                                 fontFamily: 'Montserrat Regular',
                                 color: Colors.black,
                                 fontSize: 16,

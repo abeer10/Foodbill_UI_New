@@ -61,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 
   getUserData() async {
-    DocumentSnapshot documentSnapshot = await _firestore.collection("restaurants").doc(userId).get();
+    DocumentSnapshot documentSnapshot = await _firestore.collection("customers").doc(userId).get();
     print(documentSnapshot.data());
     setState(() {
       print("a");
@@ -159,9 +159,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 press: () {
                   if (_formKey.currentState.validate()) {
                    Get.snackbar("Profile", "Data Saved", duration: Duration(seconds: 2), backgroundColor: Colors.red);
-                    _firestore.collection("restaurants").doc(userId).update({
+                    _firestore.collection("customers").doc(userId).update({
                       "name" : NameCtrl.text,
                       "phone" : phonrNumberCtrl.text,
+                      "search" :NameCtrl.text.characters.toList(),
 
                     }).then((value){
 

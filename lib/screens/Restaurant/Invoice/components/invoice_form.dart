@@ -53,8 +53,8 @@ class _NewBillState extends State<NewBill> {
   }
 
   getCustomerData(String uid) async {
-
-    documentSnapshot = await _firestore.collection("restaurants").doc(uid).get();
+    print("abeer");
+    DocumentSnapshot documentSnapshot = await _firestore.collection("customers").doc(uid).get();
     name = documentSnapshot.data()["name"];
     print(documentSnapshot.data());
     return documentSnapshot.data();
@@ -62,7 +62,6 @@ class _NewBillState extends State<NewBill> {
 
   @override
   void initState() {
-
     getUserData();
     var num = Random();
 
@@ -107,7 +106,7 @@ class _NewBillState extends State<NewBill> {
         child: Column(
           children: [
             StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance.collection("restaurants").where("type", isEqualTo: "c").snapshots(),
+                stream: FirebaseFirestore.instance.collection("customers").snapshots(),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData)
                     return CircularProgressIndicator();
@@ -298,6 +297,10 @@ class _NewBillState extends State<NewBill> {
                                      child: Icon(Icons.shopping_cart, color: Colors.green,),
                                    ),
                                  onTap: (){
+                                   print(documentSnapshot.data());
+                                   if(selectedCustomer == null) {
+                                     showInSnackBar("Please Select Customer");
+                                   } else {
                                      _firestore.collection("restaurants_orders")
                                          .doc(uid).collection("orders").doc(
                                          orderNo.toString())
@@ -361,7 +364,6 @@ class _NewBillState extends State<NewBill> {
                                          "orders").doc(orderNo.toString())
                                          .set(
                                          {
-
                                            "orderNo": orderNo,
                                            "rating": 0,
                                            "review": null,
@@ -387,7 +389,7 @@ class _NewBillState extends State<NewBill> {
                                      );
                                      showInSnackBar("Item Successfully Added to Cart");
 
-                                   }
+                                   }}
                                ),
                                InkWell(
                                  child: Padding(
@@ -395,6 +397,7 @@ class _NewBillState extends State<NewBill> {
                                    child: Icon(Icons.delete, color: Colors.red,),
                                  ),
                                  onTap: (){
+
 
                                      _firestore.collection("restaurants_orders")
                                          .doc(uid).collection("orders").doc(
@@ -558,16 +561,20 @@ class _NewBillState extends State<NewBill> {
               height: 50,
               margin: EdgeInsets.only(left: 20,right: 20, bottom: 10),
               child: RaisedButton(onPressed: ()async {
-                for(int i =0; i<querySnapshot.docs.length; i++){
-                  await  _firestore.collection("restaurants_products").doc(uid)
-                      .collection("products").doc(querySnapshot.docs[i].data()["itemNo"].toString()).update({
-                    "qty" : 0,
-                  });
-
-                };
-                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
-                    Bill_Screen()), (Route<dynamic> route) => false);
-              },
+                if(selectedCustomer == null) {
+                 showInSnackBar("Please Select Customer");
+                } else {
+                  for (int i = 0; i < querySnapshot.docs.length; i++) {
+                    await _firestore.collection("restaurants_products").doc(uid)
+                        .collection("products").doc(querySnapshot.docs[i]
+                        .data()["itemNo"].toString()).update({
+                      "qty": 0,
+                    });
+                  };
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(builder: (context) =>
+                          Bill_Screen()), (Route<dynamic> route) => false);
+                } },
                 child: Text("Generate",style: TextStyle(
                   fontFamily: 'Montserrat Regular',
                   color: Colors.white,

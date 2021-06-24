@@ -23,6 +23,7 @@ class _OrderDetailState extends State<OrderDetail> {
   String uid;
   int total = 0;
   int qty;
+  double rate;
   QuerySnapshot querySnapshot;
   DocumentSnapshot documentSnapshot;
   bool carts =  false;
@@ -60,7 +61,7 @@ class _OrderDetailState extends State<OrderDetail> {
   void initState() {
     getOrders();
     total = widget.data["total_price"];
-
+    rate =  widget.data["rating"].toDouble();
    // getOrderStatus();
     // TODO: implement initState
     super.initState();
@@ -162,7 +163,13 @@ class _OrderDetailState extends State<OrderDetail> {
                                     ),
                                   ],
                                 ),
-                                Row(
+                                widget.data["review"] != null ? Text( "Qty:  ${ snapshot.data[index].data()["qty"].toString()}",style: TextStyle(
+                          fontFamily: 'Montserrat Regular',
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+
+                          ),) : Row(
                                   children: [
                                     IconButton(
                                         onPressed:(){
@@ -209,7 +216,7 @@ class _OrderDetailState extends State<OrderDetail> {
 
                                   ],
                                 ),
-                                InkWell(
+                                widget.data["review"] != null ? Container() : InkWell(
                                     child: Padding(
                                       padding: const EdgeInsets.all(8.0),
                                       child: Icon(Icons.shopping_cart, color: Colors.green,),
@@ -243,9 +250,7 @@ class _OrderDetailState extends State<OrderDetail> {
                                        widget.data["orderNo"].toString())
                                           .update(
                                           {
-
                                             "total_price": total,
-
                                           }
                                       );
 
@@ -305,58 +310,58 @@ class _OrderDetailState extends State<OrderDetail> {
                                     showInSnackBar("Item Successfully updated in cart");
                                     }
                                     ),
-                                InkWell(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(8.0),
-                                      child: Icon(Icons.delete, color: Colors.red,),
-                                    ),
-                                    onTap: (){
-
-                                      _firestore.collection("restaurants_orders")
-                                          .doc(uid).collection("orders").doc(
-                                          widget.data["orderNo"].toString())
-                                          .collection("items").doc(
-                                          snapshot.data[index].data()["itemNo"]
-                                              .toString()).delete();
-
-                                      _firestore.collection("customer_orders")
-                                          .doc(widget.data["customerId"]).collection(
-                                          "restaurants").doc(uid).collection(
-                                          "orders").doc(widget.data["orderNo"].toString())
-                                          .collection("items").doc(
-                                          snapshot.data[index].data()["itemNo"]
-                                              .toString()).delete();
-
-
+//                                widget.data["review"] != null ? Container() : InkWell(
+//                                    child: Padding(
+//                                      padding: const EdgeInsets.all(8.0),
+//                                      child: Icon(Icons.delete, color: Colors.red,),
+//                                    ),
+//                                    onTap: (){
+//
+//                                      _firestore.collection("restaurants_orders")
+//                                          .doc(uid).collection("orders").doc(
+//                                          widget.data["orderNo"].toString())
+//                                          .collection("items").doc(
+//                                          snapshot.data[index].data()["itemNo"]
+//                                              .toString()).delete();
+//
 //                                      _firestore.collection("customer_orders")
 //                                          .doc(widget.data["customerId"]).collection(
-//                                          "restaurants").doc(uid)
-//                                          .set(
-//                                          {
-//                                            "name" : documentSnapshot.data()["name"],
-//                                            "phone" : documentSnapshot.data()["phone"],
-//                                            "address" : documentSnapshot.data()["address"],
-//                                            "about" : documentSnapshot.data()["about"],
-//                                            "pic" : documentSnapshot.data()["pic"]
-//                                          }
-//                                      );
-                                      _firestore.collection("restaurants_products").doc(uid)
-                                          .collection("products").doc(snapshot.data[index]
-                                          .data()["itemNo"].toString()).update({
-                                        "qty" : 0,
-                                      });
-                                      setState(() {
-                                        total = total - (snapshot.data[index]
-                                            .data()["qty"] * snapshot.data[index]
-                                            .data()["price"]);
-                                        if(total <= 0 ){
-                                          total = 0;
-                                        }
-                                      });
-                                      showInSnackBar("item deleted successfully");
-                                    }
-
-                                ),
+//                                          "restaurants").doc(uid).collection(
+//                                          "orders").doc(widget.data["orderNo"].toString())
+//                                          .collection("items").doc(
+//                                          snapshot.data[index].data()["itemNo"]
+//                                              .toString()).delete();
+//
+//
+////                                      _firestore.collection("customer_orders")
+////                                          .doc(widget.data["customerId"]).collection(
+////                                          "restaurants").doc(uid)
+////                                          .set(
+////                                          {
+////                                            "name" : documentSnapshot.data()["name"],
+////                                            "phone" : documentSnapshot.data()["phone"],
+////                                            "address" : documentSnapshot.data()["address"],
+////                                            "about" : documentSnapshot.data()["about"],
+////                                            "pic" : documentSnapshot.data()["pic"]
+////                                          }
+////                                      );
+//                                      _firestore.collection("restaurants_products").doc(uid)
+//                                          .collection("products").doc(snapshot.data[index]
+//                                          .data()["itemNo"].toString()).update({
+//                                        "qty" : 0,
+//                                      });
+//                                      setState(() {
+//                                        total = total - (snapshot.data[index]
+//                                            .data()["qty"] * snapshot.data[index]
+//                                            .data()["price"]);
+//                                        if(total <= 0 ){
+//                                          total = 0;
+//                                        }
+//                                      });
+//                                      showInSnackBar("item deleted successfully");
+//                                    }
+//
+//                                ),
 
                               ],
                             ),
@@ -477,7 +482,7 @@ class _OrderDetailState extends State<OrderDetail> {
                             Padding(
                               padding: const EdgeInsets.only(right: 15),
                               child:  SmoothStarRating(
-                                starCount: widget.data["rating"].toDouble(),
+                                starCount: widget.data["rating"].toInt(),
                                 color: Constants.ratingBG,
                                 allowHalfRating: true,
                                 rating: 5.0,

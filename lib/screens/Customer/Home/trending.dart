@@ -7,15 +7,56 @@ import 'package:shop_app/components/coustom_bottom_nav_bar.dart';
 import 'package:shop_app/enums.dart';
 import 'package:shop_app/screens/Customer/Home/restaurant_profile/details.dart';
 
-class Trending extends StatelessWidget {
+class Trending extends StatefulWidget {
   static String routeName = "/Home";
+
+  @override
+  _TrendingState createState() => _TrendingState();
+}
+
+class _TrendingState extends State<Trending> {
  String name;
+
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
+
   final TextEditingController _searchControl = new TextEditingController();
-  getRestaurants() async {
-    QuerySnapshot querySnapshot = await  firebaseFirestore.collection("restaurants").
-    where("type", isEqualTo : "r").get();
+
+  getRestaurants(String val) async {
+    QuerySnapshot querySnapshot =   await FirebaseFirestore.instance.collection("restaurants").orderBy("rating" , descending: true).get();
+
     return querySnapshot.docs;
+  }
+
+  Widget restaurants(String val){
+    print(val);
+    return  StreamBuilder<QuerySnapshot>(
+      stream: (val != "" && val != null)
+          ? FirebaseFirestore.instance
+          .collection('restaurants')
+          .where("search", arrayContains: val)
+          .snapshots()
+          : FirebaseFirestore.instance.collection("restaurants").orderBy("rating" , descending: true).snapshots(),
+      builder: (context, snapshot) {
+        return (snapshot.connectionState == ConnectionState.waiting)
+            ? Center(child: CircularProgressIndicator())
+            : ListView.builder(
+          primary: false,
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          itemCount: snapshot.data.docs.length,
+          itemBuilder: (BuildContext context, int index) {
+            Map restaurant = snapshot.data.docs[index].data();
+            return TrendingItem(
+              img: restaurant["pic"] == null || restaurant["pic"] == "" ? "assets/images/biryani.jpeg" : restaurant["pic"],
+              title: restaurant["name"],
+              address: restaurant["address"],
+              rating: restaurant["rating"],
+              restaurant: restaurant,
+            );
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -83,44 +124,21 @@ class Trending extends StatelessWidget {
                   ),
                   controller: _searchControl,
                   onChanged: (val){
-                    print(val);
-                    _searchControl.text = val;
+                    print(_searchControl.text);
+                    setState(() {
+                     // restaurants(val);
+                    //  getRestaurants(val);
+                    });
+//                    print(val);
+//                    _searchControl.text = val;
                   },
                 ),
               ),
             ),
               SizedBox(height: 10.0),
-//          StreamBuilder<QuerySnapshot>(
-//            stream: (_searchControl.text != "" && _searchControl.text != null)
-//                ? FirebaseFirestore.instance
-//                .collection('restaurants')
-//                .where("searchKeywords", arrayContains: _searchControl.text)
-//                .snapshots()
-//                : FirebaseFirestore.instance.collection("restaurants").snapshots(),
-//            builder: (context, snapshot) {
-//              return (snapshot.connectionState == ConnectionState.waiting)
-//                  ? Center(child: CircularProgressIndicator())
-//                  : ListView.builder(
-//                    primary: false,
-//                    shrinkWrap: true,
-//                     physics: NeverScrollableScrollPhysics(),
-//                     itemCount: snapshot.data.docs.length,
-//                      itemBuilder: (BuildContext context, int index) {
-//                       Map restaurant = snapshot.data.docs[index].data();
-//                     return TrendingItem(
-//                    img: restaurant["pic"] == null || restaurant["pic"] == "" ? "assets/images/biryani.jpeg" : restaurant["pic"],
-//                    title: restaurant["name"],
-//                    address: restaurant["address"],
-//                    rating: restaurant["rating"],
-//                    restaurant: restaurant,
-//                  );
-//                },
-//              );
-//            },
-//          ),
-
-              FutureBuilder(
-                  future: getRestaurants(),
+             // restaurants(null),
+              _searchControl.text == "" || _searchControl.text == null ? FutureBuilder(
+                  future: getRestaurants(""),
                   builder: (context, snapshot){
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return Center(
@@ -148,7 +166,8 @@ class Trending extends StatelessWidget {
                       );
                     }
 
-                  }),
+                  }):
+                  restaurants(_searchControl.text),
 
               SizedBox(height: 10.0),
             ],
@@ -156,5 +175,7 @@ class Trending extends StatelessWidget {
         ),
       ),
     );
+
+
   }
 }

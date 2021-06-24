@@ -77,8 +77,11 @@ int i=0;
                             scrollDirection: Axis.vertical,
                             shrinkWrap: true,
                             itemCount: snapshot.data.length,
+                            physics: ClampingScrollPhysics(),
                             itemBuilder: (context, index) {
+                              if(snapshot.data[index].data()["status"] == "accept"){
                               total = total  + snapshot.data[index].data()["total_price"];
+                              }
                               //totalCal(snapshot.data[index].data()["total_price"]);
                               print(widget.data["id"]);
                               print(total);
@@ -87,7 +90,7 @@ int i=0;
                                 Navigator.of(context).push(
                                   MaterialPageRoute(
                                     builder: (BuildContext context) {
-                                      return OrderDetails(orderNo: snapshot.data[index].data()["orderNo"].toString(), uid: widget.data["id"], data: snapshot.data[index].data(),);
+                                      return OrderDetails(orderNo: snapshot.data[index].data()["orderNo"].toString(), uid: widget.data["id"], data: snapshot.data[index].data(), orderData: widget.data,);
                                     },
                                   ),
                                 );

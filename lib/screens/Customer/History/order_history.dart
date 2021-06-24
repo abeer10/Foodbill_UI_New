@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shop_app/models/cart.dart';
+import 'package:shop_app/screens/Customer/History/orders.dart';
 import 'package:shop_app/screens/Customer/Home/const.dart';
 import 'package:shop_app/screens/Customer/Home/restaurant_profile/smooth_star_rating.dart';
 
@@ -13,7 +14,8 @@ class OrderDetails extends StatefulWidget {
   String orderNo;
   String uid;
   Map data;
-  OrderDetails({this.orderNo, this.uid, this.data});
+  Map orderData;
+  OrderDetails({this.orderNo, this.uid, this.data, this.orderData});
 
   @override
   _OrderDetailsState createState() => _OrderDetailsState();
@@ -30,6 +32,7 @@ class _OrderDetailsState extends State<OrderDetails> {
   TextEditingController reviewCtrl = TextEditingController();
   DocumentSnapshot documentSnapshot;
   QuerySnapshot querySnapshot;
+  double avgRating;
   getOrders() async {
     uid =  await firebaseAuth.currentUser.uid;
     print(widget.orderNo);
@@ -54,6 +57,11 @@ class _OrderDetailsState extends State<OrderDetails> {
     return documentSnapshot;
   }
 
+  getRestaurantRating() async {
+    DocumentSnapshot documentSnapshot = await _firestore.collection("restaurants").doc(widget.uid).get();
+    avgRating = documentSnapshot.data()["rating"].toDouble();
+  }
+
   @override
   void initState() {
     print(widget.data);
@@ -66,7 +74,8 @@ class _OrderDetailsState extends State<OrderDetails> {
 
   @override
   Widget build(BuildContext context) {
-    //getOrderDetails();
+   getRestaurantRating();
+
     return Scaffold(
       appBar: AppBar(
         title: Text("Order Detail"),
@@ -423,9 +432,19 @@ class _OrderDetailsState extends State<OrderDetails> {
                       "review": reviewCtrl.text,
                     }
                 ).then((value){print("successful");});
-                setState(() {
-                });
-                 Navigator.pop(context);
+
+                _firestore.collection("restaurants")
+                    .doc(widget.data["restaurantId"])
+                    .update(
+                    {
+                      "rating" : avgRating == 0 ? rate : (rate + avgRating)/2,
+                      //"review": reviewCtrl.text,
+                    }
+                ).then((value){print("successful");});
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                    Orders(data: widget.orderData,)), (Route<dynamic> route) => false);
+              //  Navigator.pushNamedAndRemoveUntil(context, MaterialPageRoute(builder: (context) => Orders(data: widget.orderData,), (Route<dynamic> route) => false));
+                 //Navigator.pop(context);
               },
                 child: Text("Save Review",style: TextStyle(
                   fontFamily: 'Montserrat Regular',
@@ -461,10 +480,13 @@ class _OrderDetailsState extends State<OrderDetails> {
                       "status": "modification"
                     }
                 ).then((value){print("successful");});
-                setState(() {
-                });
-                Navigator.pop(context);
-              //  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Bill_Screen()));
+//                setState(() {
+//                  getOrderDetails();
+//                });
+               // Navigator.pop(context);
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) =>
+                    Orders(data: widget.orderData,)), (Route<dynamic> route) => false);
+               // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Orders(data: widget.orderData,)));
               },
                 child: Text("Modification",style: TextStyle(
                   fontFamily: 'Montserrat Regular',
@@ -501,7 +523,7 @@ class _OrderDetailsState extends State<OrderDetails> {
                     }
                 ).then((value){print("successful");});
                 setState(() {
-
+                 getOrderDetails();
                 });
               //  Navigator.pop(context);
                 //  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Bill_Screen()));

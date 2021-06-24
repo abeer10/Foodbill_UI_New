@@ -8,7 +8,7 @@ class TrendingItem extends StatefulWidget {
   final String img;
   final String title;
   final String address;
-  final int rating;
+  var rating;
   Map restaurant;
   TrendingItem({
     Key key,
@@ -83,7 +83,7 @@ class _TrendingItemState extends State<TrendingItem> {
                                 size: 10.0,
                               ),
                               Text(
-                                " ${widget.rating} ",
+                                " ${widget.rating.toStringAsFixed(1)} ",
                                 style: TextStyle(
                                   fontSize: 10.0,
                                 ),

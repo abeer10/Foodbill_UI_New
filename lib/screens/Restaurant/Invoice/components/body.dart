@@ -40,6 +40,7 @@ int i=0;
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
+      child: Container(
         child: Column(
           children: [
             FutureBuilder(
@@ -56,9 +57,12 @@ int i=0;
                     ) : ListView.builder(
                      // scrollDirection: Axis.vertical,
                       shrinkWrap: true,
+                        physics: ClampingScrollPhysics(),
                       itemCount: snapshot.data.length,
                       itemBuilder: (context, index) {
-                        total = total + snapshot.data[index].data()["total_price"];
+                        if(snapshot.data[index].data()["status"] == "accept"){
+                          total = total  + snapshot.data[index].data()["total_price"];
+                        }
 
                         return InkWell(
                           onTap: (){
@@ -99,7 +103,7 @@ int i=0;
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text("Order# ${snapshot.data[index].data()["orderNo"].toString()}" ,  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),),
-                                    Text("Restaurant: +92123456789"),
+                                    Text("Customer:  ${snapshot.data[index].data()["customerName"]}"),
                                     Text("Price: Rs ${snapshot.data[index].data()["total_price"].toString()}"),
                                     Text("Status:  ${snapshot.data[index].data()["status"]}",
                                     style: TextStyle(color:
@@ -165,7 +169,8 @@ int i=0;
 
             ),
           ],
-        )
+        ),
+      ),
     );
   }
 }

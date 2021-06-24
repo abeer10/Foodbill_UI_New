@@ -34,36 +34,38 @@ class _BodyState extends State<Body> {
       appBar: AppBar(
           title: Text("User Restaurants")
       ),
-      body:  FutureBuilder(
-          future: getRestaurants(),
-          builder: (context, snapshot){
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            } else {
-              return snapshot.data.length == 0 ?  Container(
-                child: Center(child: Text("No Restaurants ", style: TextStyle(color: Colors.black, fontSize: 18.0),)),
-              ) : ListView.builder(
-                primary: false,
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: snapshot.data.length,
-                itemBuilder: (BuildContext context, int index) {
-                  Map restaurant = snapshot.data[index].data();
+      body:  SingleChildScrollView(
+        child: FutureBuilder(
+            future: getRestaurants(),
+            builder: (context, snapshot){
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(
+                  child: CircularProgressIndicator(),
+                );
+              } else {
+                return snapshot.data.length == 0 ?  Container(
+                  child: Center(child: Text("No Restaurants ", style: TextStyle(color: Colors.black, fontSize: 18.0),)),
+                ) : ListView.builder(
+                  primary: false,
+                  shrinkWrap: true,
+                  physics: ClampingScrollPhysics(),
+                  itemCount: snapshot.data.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    Map restaurant = snapshot.data[index].data();
 
-                  return TrendingItems(
-                    img: restaurant["pic"] == null || restaurant["pic"] == "" ? "assets/images/biryani.jpeg" : restaurant["pic"],
-                    title: restaurant["name"],
-                    address: restaurant["address"],
-                    rating: restaurant["rating"],
-                    restaurant: restaurant,
-                  );
-                },
-              );
-            }
+                    return TrendingItems(
+                      img: restaurant["pic"] == null || restaurant["pic"] == "" ? "assets/images/biryani.jpeg" : restaurant["pic"],
+                      title: restaurant["name"],
+                      address: restaurant["address"],
+                      rating: restaurant["rating"],
+                      restaurant: restaurant,
+                    );
+                  },
+                );
+              }
 
-          }),
+            }),
+      ),
 
     );
   }

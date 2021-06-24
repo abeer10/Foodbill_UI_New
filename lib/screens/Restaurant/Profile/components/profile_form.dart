@@ -216,7 +216,9 @@ class _Profile_FormState extends State<Profile_Form> {
                   "phone" : phonrNumberCtrl.text,
                   "address" : restaurantAddressCtrl.text,
                   "about" : restaurantAboutCtrl.text,
-                  "pic" : imagePath
+                  "pic" : imagePath,
+                  "search" :restaurantNameCtrl.text.characters.toList(),
+
 
                 }).then((value){
                   print("successfully entered");
